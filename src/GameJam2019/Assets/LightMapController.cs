@@ -22,4 +22,9 @@ public class LightMapController : MonoBehaviour
 	{
 
 	}
+
+	public void AddOpaqueCell(int x, int y)
+	{
+
+	}
 }

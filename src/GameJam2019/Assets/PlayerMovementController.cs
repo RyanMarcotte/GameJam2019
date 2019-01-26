@@ -8,7 +8,6 @@ public class PlayerMovementController : MonoBehaviour
 	private Rigidbody2D _body;
 	private float _horizontal;
 	private float _vertical;
-	private float _moveLimiter = 0.7f;
 	
 	public float RunSpeed = 5;
 

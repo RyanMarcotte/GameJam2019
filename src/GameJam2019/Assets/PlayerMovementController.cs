@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Extensions;
 using UnityEngine;
 
 public class PlayerMovementController : MonoBehaviour
@@ -27,5 +26,15 @@ public class PlayerMovementController : MonoBehaviour
 	private void FixedUpdate()
 	{
 		_body.velocity = new Vector2(_horizontal, _vertical).ToNormalizedVector2() * RunSpeed;
+	}
+}
+
+public static class Vector2Extensions
+{
+	public static Vector2 ToNormalizedVector2(this Vector2 source)
+	{
+		var result = new Vector2(source.x, source.y);
+		result.Normalize();
+		return result;
 	}
 }

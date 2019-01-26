@@ -250,50 +250,6 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
---- !u!1 &60051648
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 60051649}
-  - component: {fileID: 60051650}
-  m_Layer: 0
-  m_Name: LightMap
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &60051649
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 60051648}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 161207334}
-  m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &60051650
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 60051648}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d3c712b7ce707cc4da42de2c53c4beb7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Player: {fileID: 616828050}
 --- !u!1 &161207332
 GameObject:
   m_ObjectHideFlags: 0
@@ -337,7 +293,6 @@ Transform:
   m_Children:
   - {fileID: 26616116}
   - {fileID: 305802057}
-  - {fileID: 60051649}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -357,7 +312,6 @@ MonoBehaviour:
   ObstacleTile: {fileID: 11400000, guid: 9719414a967735b4688b014b0b7e68ce, type: 2}
   Floor: {fileID: 26616118}
   Obstacles: {fileID: 305802060}
-  LightMap: {fileID: 60051648}
 --- !u!1 &305802056
 GameObject:
   m_ObjectHideFlags: 0
@@ -622,11 +576,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5615332684880005252, guid: 6434e10473554094faddcd16ca68d5bf,
-        type: 3}
-      propertyPath: RunSpeed
-      value: 15
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6434e10473554094faddcd16ca68d5bf, type: 3}

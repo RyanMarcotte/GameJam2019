@@ -22,16 +22,6 @@ public class CameraController : MonoBehaviour
 
 	void Update()
 	{
-		if (Input.GetKeyDown(KeyCode.PageUp))
-			Magnitude += 1;
-		if (Input.GetKeyDown(KeyCode.PageDown))
-			Magnitude -= 1;
-
-		if (Input.GetKeyDown(KeyCode.Home))
-			Intensity += 1;
-		if (Input.GetKeyDown(KeyCode.End))
-			Intensity -= 1;
-
 		if (Math.Abs(Magnitude) > 0)
 			_timeElapsed += Time.deltaTime;
 		else
@@ -40,7 +30,7 @@ public class CameraController : MonoBehaviour
 
     void LateUpdate()
     {
-	    var shakeOffset = _axis * Magnitude * (float)Math.Sin(100 * Intensity * _timeElapsed);
+	    var shakeOffset = _axis * (Magnitude * 0.25f) * (float)Math.Sin(10 * Intensity * _timeElapsed);
 		transform.position = Player.transform.position + _offset + shakeOffset;
     }
 }

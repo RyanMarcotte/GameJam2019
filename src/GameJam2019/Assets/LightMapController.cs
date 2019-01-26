@@ -37,12 +37,6 @@ public class LightMapController : MonoBehaviour
 			lr.SetPosition(1, new Vector3(lineSegment.End.x, lineSegment.End.y, 10f));
 			lr.startColor = Color.yellow;
 			lr.endColor = Color.yellow;
-
-			/*var startPoint = GameObject.Instantiate(Resources.Load("Point")) as GameObject;
-			startPoint.transform.position = lineSegment.Start;
-
-			var endPoint = GameObject.Instantiate(Resources.Load("Point")) as GameObject;
-			endPoint.transform.position = lineSegment.Start;*/
 		}
 	}
 }

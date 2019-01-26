@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using UnityEngine.UI;
 
 public class TerrainGenerator : MonoBehaviour
 {
@@ -98,6 +98,94 @@ public class TerrainGenerator : MonoBehaviour
 		lineSegmentCollection.Add(new LineSegment(bottomLeftCorner, bottomRightCorner));
 		lineSegmentCollection.Add(new LineSegment(bottomRightCorner, topRightCorner));
 		lineSegmentCollection.Add(new LineSegment(topRightCorner, topLeftCorner));
+
+		bool[,] cellVisited = new bool[height, width];
+		for (int y = 0; y < height; ++y)
+		{
+			for (int x = 0; x < width; ++x)
+			{
+				if (cellVisited[y, x]) { continue; }
+
+				var type = tileMap[y, x];
+				var rectangle = GetRectangleFromCell(ref tileMap, ref cellVisited, x, y);
+				if (rectangle == null)
+					continue;
+
+				var rect = rectangle.Value;
+				var rectTopLeftCorner = new Vector2(rect.xMin - width / 2, rect.yMax - height / 2);
+				var rectTopRightCorner = new Vector2(rect.xMax - width / 2, rect.yMax - height / 2);
+				var rectBottomLeftCorner = new Vector2(rect.xMin - width / 2, rect.yMin - height / 2);
+				var rectBottomRightCorner = new Vector2(rect.xMax - width / 2, rect.yMin - height / 2);
+
+				lineSegmentCollection.Add(new LineSegment(rectTopLeftCorner, rectBottomLeftCorner));
+				lineSegmentCollection.Add(new LineSegment(rectBottomLeftCorner, rectBottomRightCorner));
+				lineSegmentCollection.Add(new LineSegment(rectBottomRightCorner, rectTopRightCorner));
+				lineSegmentCollection.Add(new LineSegment(rectTopRightCorner, rectTopLeftCorner));
+			}
+		}
+
 		return lineSegmentCollection.ToArray();
+	}
+
+	private Rect? GetRectangleFromCell(ref TileType[,] tileMap, ref bool[,] cellVisited, int cellX, int cellY)
+	{
+		var type = tileMap[cellY, cellX];
+		if (type != TileType.Obstacle && type != TileType.Wall)
+			return null;
+
+		int widthOfTileMap = tileMap.GetLength(1);
+		int heightOfTileMap = tileMap.GetLength(0);
+
+		int width = 0;
+		int height = 0;
+
+		// Analyze current row to determine run-length of like-typed tiles
+		// (Terminate when a different tile is encountered)
+		for (int x = cellX; ((x < widthOfTileMap) && (tileMap[cellY, x] == type) && (!cellVisited[cellY, x])); ++x, ++width)
+			cellVisited[cellY, x] = true;
+
+		// Analyze rows below the original run to determine if they also have like-typed tiles
+		bool keepGoing = true;
+		for (int y = cellY; ((keepGoing) && (y < heightOfTileMap)); ++y)
+		{
+			for (int x = cellX; x < (cellX + width); ++x)
+			{
+				if (tileMap[y, x] != type)
+					keepGoing = false;
+			}
+
+			// Test if tiles to the left and to the right of the run are like-typed
+			// (Terminate if BOTH tiles share a type with the current run)
+			if (width != widthOfTileMap)
+			{
+				try
+				{
+					bool leftCellIsSameType = (cellX > 0) && (tileMap[y, cellX - 1] == type);
+					bool leftCellNotVisited = (cellX > 0) && (!cellVisited[y, cellX - 1]);
+					bool leftAdjacentIsSame = (cellX <= 0) || ((leftCellIsSameType) && (leftCellNotVisited));
+
+					int rightEdge = (cellX + width);
+
+					bool rightCellIsSameType = (rightEdge < widthOfTileMap - 1) && tileMap[y, rightEdge + 1] == type;
+					bool rightCellNotVisited = (rightEdge < widthOfTileMap - 1) && (!cellVisited[y, rightEdge + 1]);
+					bool rightAdjacentIsSame = (rightEdge >= widthOfTileMap - 1) || ((rightCellIsSameType) && (rightCellNotVisited));
+
+					if ((leftAdjacentIsSame) && (rightAdjacentIsSame)) { keepGoing = false; }
+				}
+				catch
+				{
+					throw (new Exception("For " + cellX + "," + cellY + " - rightEdge = " + (cellX + width) + ", data.Width = " + (widthOfTileMap - 1)));
+				}
+			}
+
+			// Mark all cells on new row as visited
+			if (!keepGoing) continue;
+			
+			++height;
+			for (int x = cellX; x < (cellX + width); ++x)
+				cellVisited[y, x] = true;
+		}
+
+		return new Rect(cellX, cellY, width, height);
 	}
 }

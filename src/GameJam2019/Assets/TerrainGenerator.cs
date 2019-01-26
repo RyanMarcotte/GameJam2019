@@ -10,6 +10,7 @@ public class TerrainGenerator : MonoBehaviour
 
 	public Tilemap Floor;
 	public Tilemap Obstacles;
+	public GameObject LightMap;
 
 	// Start is called before the first frame update
 	void Start()

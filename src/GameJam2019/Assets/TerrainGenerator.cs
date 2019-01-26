@@ -13,8 +13,12 @@ public class TerrainGenerator : MonoBehaviour
 	public Tilemap Obstacles;
 	public GameObject LightMap;
 
+	public int SizeX { get; private set; }
+	public int SizeY { get; private set; }
+
+	// Awake is called before Start
 	// Start is called before the first frame update
-	void Start()
+	void Awake()
 	{
 		var bitmapReader = new BitmapReader();
 		var levelMap = bitmapReader.Read();
@@ -25,18 +29,18 @@ public class TerrainGenerator : MonoBehaviour
 			return;
 		}
 
-		int height = levelMap.GetLength(0);
-		int width = levelMap.GetLength(1);
+		SizeY = levelMap.GetLength(0);
+		SizeX = levelMap.GetLength(1);
 
-		for (int y = GetLowerBound(height); y < GetUpperBound(height); y++)
+		for (int y = GetLowerBound(SizeY); y < GetUpperBound(SizeY); y++)
 		{
-			for (int x = GetLowerBound(width); x < GetUpperBound(width); x++)
+			for (int x = GetLowerBound(SizeX); x < GetUpperBound(SizeX); x++)
 			{
-				var tile = levelMap[y + (height / 2), x + (width / 2)];
-				if (y == GetLowerBound(height)
-				    || y == GetUpperBound(height) - 1
-				    || x == GetUpperBound(width) - 1
-				    || x == GetLowerBound(width))
+				var tile = levelMap[y + (SizeY / 2), x + (SizeX / 2)];
+				if (y == GetLowerBound(SizeY)
+				    || y == GetUpperBound(SizeY) - 1
+				    || x == GetUpperBound(SizeX) - 1
+				    || x == GetLowerBound(SizeX))
 					Obstacles.SetTile(new Vector3Int(x, y, -1), ObstacleTile);
 
 				if (tile == TileType.Ground)

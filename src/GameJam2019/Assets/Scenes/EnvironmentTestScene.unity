@@ -312,6 +312,7 @@ MonoBehaviour:
   ObstacleTile: {fileID: 11400000, guid: 9719414a967735b4688b014b0b7e68ce, type: 2}
   Floor: {fileID: 26616118}
   Obstacles: {fileID: 305802060}
+  LightMap: {fileID: 0}
 --- !u!1 &305802056
 GameObject:
   m_ObjectHideFlags: 0
@@ -597,6 +598,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: Item(shake)
       objectReference: {fileID: 0}
+    - target: {fileID: 2110533666189165021, guid: a3b2ff68c2d57334da343efc0e9ef5d6,
+        type: 3}
+      propertyPath: Player
+      value: 
+      objectReference: {fileID: 616828050}
+    - target: {fileID: 2110533666189165021, guid: a3b2ff68c2d57334da343efc0e9ef5d6,
+        type: 3}
+      propertyPath: Camera
+      value: 
+      objectReference: {fileID: 1912890030}
     - target: {fileID: 2110533666189165023, guid: a3b2ff68c2d57334da343efc0e9ef5d6,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -652,16 +663,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2110533666189165021, guid: a3b2ff68c2d57334da343efc0e9ef5d6,
-        type: 3}
-      propertyPath: Player
-      value: 
-      objectReference: {fileID: 616828050}
-    - target: {fileID: 2110533666189165021, guid: a3b2ff68c2d57334da343efc0e9ef5d6,
-        type: 3}
-      propertyPath: Camera
-      value: 
-      objectReference: {fileID: 1912890030}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a3b2ff68c2d57334da343efc0e9ef5d6, type: 3}
 --- !u!1001 &1721555051
@@ -740,11 +741,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 5392641228612924838, guid: 1126b8f1a1da9a24293eeb0215b14869,
-        type: 3}
-      propertyPath: m_Name
-      value: Main Camera
-      objectReference: {fileID: 0}
     - target: {fileID: 5392641228612924762, guid: 1126b8f1a1da9a24293eeb0215b14869,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -805,6 +801,16 @@ PrefabInstance:
       propertyPath: Player
       value: 
       objectReference: {fileID: 616828050}
+    - target: {fileID: 5392641228612924836, guid: 1126b8f1a1da9a24293eeb0215b14869,
+        type: 3}
+      propertyPath: Map
+      value: 
+      objectReference: {fileID: 161207332}
+    - target: {fileID: 5392641228612924838, guid: 1126b8f1a1da9a24293eeb0215b14869,
+        type: 3}
+      propertyPath: m_Name
+      value: Main Camera
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1126b8f1a1da9a24293eeb0215b14869, type: 3}
 --- !u!1 &1912890030 stripped

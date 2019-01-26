@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices.ComTypes;
 using UnityEngine;
 
-public class PickupPlayerProximityCheckController : MonoBehaviour
+public class PickupPlayerProximityCheckForCameraShakeController : MonoBehaviour
 {
 	private const float MAXIMUM_DISTANCE = 3f;
 
@@ -26,11 +26,4 @@ public class PickupPlayerProximityCheckController : MonoBehaviour
 
 	    component.Magnitude = distance < MAXIMUM_DISTANCE ? (MAXIMUM_DISTANCE - distance)  : 0f;
     }
-
-	void OnDestory()
-	{
-		var component = Camera.GetComponent<CameraController>();
-		if (component != null)
-			component.Magnitude = 0f;
-	}
 }

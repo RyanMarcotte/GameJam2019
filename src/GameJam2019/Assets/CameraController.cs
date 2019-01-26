@@ -6,8 +6,15 @@ using UnityEngine;
 public class CameraController : MonoBehaviour
 {
 	public GameObject Player;
+	public GameObject Map;
 	private Vector3 _offset;
 	private float _timeElapsed;
+
+	// bounds
+	private float _minX;
+	private float _maxX;
+	private float _minY;
+	private float _maxY;
 
 	// shake
 	public float Magnitude;
@@ -17,7 +24,20 @@ public class CameraController : MonoBehaviour
 	// Start is called before the first frame update
 	void Start()
     {
-		_offset = transform.position - Player.transform.position;
+	    _offset = transform.position - Player.transform.position;
+	    
+	    var vertExtent = Camera.main.GetComponent<Camera>().orthographicSize;
+	    var horzExtent = vertExtent * Screen.width / Screen.height;
+
+	    var terrainGenerator = Map.GetComponent<TerrainGenerator>();
+	    float mapX = terrainGenerator != null ? terrainGenerator.SizeX : 1000f;
+	    float mapY = terrainGenerator != null ? terrainGenerator.SizeY : 1000f;
+
+	    // Calculations assume map is position at the origin
+	    _minX = horzExtent - mapX / 2;
+	    _maxX = mapX / 2 - horzExtent;
+	    _minY = vertExtent - mapY / 2;
+	    _maxY = mapY / 2 - vertExtent;
 	}
 
 	void Update()
@@ -36,5 +56,10 @@ public class CameraController : MonoBehaviour
     {
 	    var shakeOffset = _axis * (Magnitude * 0.25f) * (float)Math.Sin(10 * Intensity * _timeElapsed);
 		transform.position = Player.transform.position + _offset + shakeOffset;
-    }
+
+	    var v3 = transform.position;
+	    v3.x = Mathf.Clamp(v3.x, _minX, _maxX);
+	    v3.y = Mathf.Clamp(v3.y, _minY, _maxY);
+	    transform.position = v3;
+	}
 }

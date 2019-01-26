@@ -22,6 +22,10 @@ public class CameraController : MonoBehaviour
 
 	void Update()
 	{
+		Magnitude -= 0.05f;
+		if (Magnitude < 0f)
+			Magnitude = 0f;
+
 		if (Math.Abs(Magnitude) > 0)
 			_timeElapsed += Time.deltaTime;
 		else

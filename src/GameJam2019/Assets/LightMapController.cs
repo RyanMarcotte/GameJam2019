@@ -29,11 +29,20 @@ public class LightMapController : MonoBehaviour
 		// TODO: remove after debugging is complete
 		foreach (var lineSegment in _lineSegmentCollection)
 		{
-			var startPoint = GameObject.Instantiate(Resources.Load("Point")) as GameObject;
+			GameObject myLine = GameObject.Instantiate(Resources.Load("Line")) as GameObject;
+			myLine.transform.position = lineSegment.Start;
+
+			var lr = myLine.GetComponent<LineRenderer>();
+			lr.SetPosition(0, new Vector3(lineSegment.Start.x, lineSegment.Start.y, 10f));
+			lr.SetPosition(1, new Vector3(lineSegment.End.x, lineSegment.End.y, 10f));
+			lr.startColor = Color.yellow;
+			lr.endColor = Color.yellow;
+
+			/*var startPoint = GameObject.Instantiate(Resources.Load("Point")) as GameObject;
 			startPoint.transform.position = lineSegment.Start;
 
 			var endPoint = GameObject.Instantiate(Resources.Load("Point")) as GameObject;
-			endPoint.transform.position = lineSegment.Start;
+			endPoint.transform.position = lineSegment.Start;*/
 		}
 	}
 }

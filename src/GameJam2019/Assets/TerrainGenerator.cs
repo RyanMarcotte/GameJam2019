@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -110,7 +109,6 @@ public class TerrainGenerator : MonoBehaviour
 			{
 				if (cellVisited[y, x]) { continue; }
 
-				var type = tileMap[y, x];
 				var rectangle = GetRectangleFromCell(ref tileMap, ref cellVisited, x, y);
 				if (rectangle == null)
 					continue;

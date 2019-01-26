@@ -24,6 +24,7 @@ GameObject:
   - component: {fileID: 5061910495476575993}
   - component: {fileID: 5061910495476575992}
   - component: {fileID: 5061910495476575995}
+  - component: {fileID: 6519099489341535265}
   m_Layer: 5
   m_Name: PausePanel
   m_TagString: Untagged
@@ -113,6 +114,20 @@ MonoBehaviour:
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0
   m_ChildControlHeight: 0
+--- !u!114 &6519099489341535265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5061910495476575997}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40131a947ec8f3240876a376c288efda, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  EventSystem: {fileID: 0}
+  SelectedObject: {fileID: 1894183927028026237}
 --- !u!1 &5061910495817847004
 GameObject:
   m_ObjectHideFlags: 0
@@ -562,6 +577,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f115513e2fa6cfc4a92a740326d525a6, type: 3}
+--- !u!1 &1894183927028026237 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6662788641870135411, guid: f115513e2fa6cfc4a92a740326d525a6,
+    type: 3}
+  m_PrefabInstance: {fileID: 5061910496050924302}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &1894183927028026238 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6662788641870135408, guid: f115513e2fa6cfc4a92a740326d525a6,

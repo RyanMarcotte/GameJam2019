@@ -17,9 +17,15 @@ public class CameraController : MonoBehaviour
 	private float _maxY;
 
 	// shake
-	public float Magnitude;
+	public float Magnitude { get; private set; }
 	public float Intensity;
 	private readonly Vector3 _axis = Vector3.right;
+
+	private readonly Stack<float> _magnitudeStack = new Stack<float>();
+	public void AddShake(float magnitude)
+	{
+		_magnitudeStack.Push(magnitude);
+	}
 
 	// Start is called before the first frame update
 	void Start()
@@ -54,6 +60,13 @@ public class CameraController : MonoBehaviour
 
     void LateUpdate()
     {
+		while (_magnitudeStack.Count > 0)
+		{
+			var value = _magnitudeStack.Pop();
+			if (value > Magnitude)
+				Magnitude = value;
+		}
+
 	    var shakeOffset = _axis * (Magnitude * 0.25f) * (float)Math.Sin(10 * Intensity * _timeElapsed);
 		transform.position = Player.transform.position + _offset + shakeOffset;
 

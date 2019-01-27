@@ -271,7 +271,7 @@ public class TerrainGenerator : MonoBehaviour
 		int cellY)
 	{
 		var type = tileMap[cellY, cellX];
-		if (type == TileType.Ground)
+		if (type != TileType.Tree)
 			return null;
 
 		int widthOfTileMap = tileMap.GetLength(1);
@@ -345,7 +345,7 @@ public class TerrainGenerator : MonoBehaviour
 			new Vector2(r.xMax - halfWidth, r.yMin - halfHeight) // rectBottomRightCorner
 		}).Distinct(new Vector2EqualityComparer()).Select((item, index) => new Node(item.x, item.y, index)).ToList();
 
-		Hull.Hull.setConcaveHull(points, -0.1m, 100, true);
+		Hull.Hull.setConcaveHull(points, -1m, 100, true);
 		foreach (var line in Hull.Hull.hull_concave_edges)
 		{
 			Vector2 left = new Vector2((float)line.nodes[0].x, (float)line.nodes[0].y);

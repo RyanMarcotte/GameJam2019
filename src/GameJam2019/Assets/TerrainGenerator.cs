@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Random = System.Random;
 
 public class TerrainGenerator : MonoBehaviour
 {
@@ -12,6 +13,9 @@ public class TerrainGenerator : MonoBehaviour
 	public Tilemap Floor;
 	public Tilemap Obstacles;
 	public GameObject LightMap;
+
+	public GameObject ShakeSprite;
+	public GameObject NoiseSprite;
 
 	private readonly System.Random _random = new System.Random();
 	private Tile _tree_topleft;
@@ -71,6 +75,16 @@ public class TerrainGenerator : MonoBehaviour
 
 				Floor.SetTile(new Vector3Int(x, y, 0), _groundTile);
 
+				if (tile == TileType.NoiseSprite)
+				{
+					PlaceSprite(x, y, NoiseSprite);
+				}
+
+				if (tile == TileType.ShakeSprite)
+				{
+					PlaceSprite(x, y, ShakeSprite);
+				}
+
 				if (tile != TileType.Ground)
 					Obstacles.SetTile(
 						new Vector3Int(x, y, -1),
@@ -80,12 +94,19 @@ public class TerrainGenerator : MonoBehaviour
 
 		if (LightMap == null)
 			return;
-		
+
 		var lightMapController = LightMap.GetComponent<LightMapController>();
 		if (lightMapController == null)
 			throw new InvalidOperationException("Could not retrieve LightMapController component!!");
 
 		lightMapController.SetLightmapData(SizeX, SizeY, GenerateLightMap(levelMap));
+	}
+
+	private void PlaceSprite(int x, int y, GameObject gObject)
+	{
+		var sprite = Instantiate(gObject);
+		sprite.transform.position = new Vector3(x, y, 0);
+		sprite.SetActive(true);
 	}
 
 	private TileBase GetTile(
@@ -110,6 +131,7 @@ public class TerrainGenerator : MonoBehaviour
 				if (BoundsCheck(x + 1, y + 1))
 					_treeLookAhead.Add((x + 1, y + 1), _tree_topright);
 			}
+
 			if (_treeLookAhead.ContainsKey((x, y)))
 				return _treeLookAhead[(x, y)];
 		}
@@ -123,11 +145,12 @@ public class TerrainGenerator : MonoBehaviour
 					_logLookAhead.Add((x, y + 1), _logv);
 				if (BoundsCheck(x + 1, y))
 					_logLookAhead.Add((x + 1, y), _log);
-				if (BoundsCheck(x + 2, y ))
+				if (BoundsCheck(x + 2, y))
 					_logLookAhead.Add((x + 2, y), null);
-				if (BoundsCheck(x, y + 2 ))
+				if (BoundsCheck(x, y + 2))
 					_logLookAhead.Add((x, y + 2), null);
 			}
+
 			if (_logLookAhead.ContainsKey((x, y)))
 				return _logLookAhead[(x, y)];
 		}

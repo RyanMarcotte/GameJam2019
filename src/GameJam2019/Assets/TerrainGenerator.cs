@@ -50,11 +50,14 @@ public class TerrainGenerator : MonoBehaviour
 			}
 		}
 
+		if (LightMap == null)
+			return;
+		
 		var lightMapController = LightMap.GetComponent<LightMapController>();
 		if (lightMapController == null)
 			throw new InvalidOperationException("Could not retrieve LightMapController component!!");
 
-		lightMapController.SetLightmapData(GenerateLightMap(levelMap));
+		lightMapController.SetLightmapData(SizeX, SizeY, GenerateLightMap(levelMap));
 	}
 
 	private void GenerateRandomMap(int height, int width)

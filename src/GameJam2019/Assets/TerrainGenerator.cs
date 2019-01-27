@@ -235,6 +235,30 @@ public class TerrainGenerator : MonoBehaviour
 			}
 		}
 
+		var rectGroups = new List<Rect[]>();
+		var rectanglesLeftToProcess = new LinkedList<Tuple<Rect, Bounds>>(rectangles.Select(r => Tuple.Create(r, new Bounds(r.center, r.size * 1.1f))));
+		while (rectanglesLeftToProcess.Count > 0)
+		{
+			var firstRect = rectanglesLeftToProcess.First;
+			var currentGroup = new List<Tuple<Rect, Bounds>>(new [] { firstRect.Value });
+			var nodesToRemove = new List<LinkedListNode<Tuple<Rect, Bounds>>>(new [] { firstRect });
+			var current = firstRect.Next;
+			while (current != null)
+			{
+				if (currentGroup.Any(x => x.Item2.Intersects(current.Value.Item2)))
+				{
+					currentGroup.Add(current.Value);
+					nodesToRemove.Add(current);
+				}
+
+				current = current.Next;
+			}
+
+			rectGroups.Add(currentGroup.Select(x => x.Item1).ToArray());
+			foreach (var nodeToRemove in nodesToRemove)
+				rectanglesLeftToProcess.Remove(nodeToRemove);
+		}
+
 		lineSegmentCollection.AddRange(rectangles.SelectMany(rect => GetLineSegmentsFromRectangle(rect, width, height)));
 		return lineSegmentCollection.ToArray();
 	}

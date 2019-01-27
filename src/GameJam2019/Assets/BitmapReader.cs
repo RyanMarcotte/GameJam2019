@@ -4,13 +4,13 @@ public class BitmapReader
 {
 	public TileType[,] Read()
 	{
-		var levelBitmap = Resources.Load<Texture2D>( "Levels/test" );
+		var levelBitmap = Resources.Load<Texture2D>( "Levels/lightMapTest" );
 		var tileMap = new TileType[levelBitmap.height, levelBitmap.width];
-		for (int i = 0; i < levelBitmap.width; i++)
+		for (int x = 0; x < levelBitmap.width; x++)
 		{
-			for (int j = 0; j < levelBitmap.height; j++)
+			for (int y = 0; y < levelBitmap.height; y++)
 			{
-				tileMap[i, j] = GetTileType(levelBitmap.GetPixel(j, i));
+				tileMap[y, x] = GetTileType(levelBitmap.GetPixel(x, y));
 			}
 		}
 		return tileMap;

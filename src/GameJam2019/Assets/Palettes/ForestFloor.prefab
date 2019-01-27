@@ -40,7 +40,7 @@ Grid:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7588156541459945522}
   m_Enabled: 1
-  m_CellSize: {x: 1, y: 0.96875, z: 0}
+  m_CellSize: {x: 1, y: 1, z: 0}
   m_CellGap: {x: 0, y: 0, z: 0}
   m_CellLayout: 0
   m_CellSwizzle: 0
@@ -116,6 +116,15 @@ Tilemap:
     second:
       m_TileIndex: 11
       m_TileSpriteIndex: 11
+      m_TileMatrixIndex: 0
+      m_TileColorIndex: 0
+      m_ObjectToInstantiate: {fileID: 0}
+      m_TileFlags: 1
+      m_ColliderType: 1
+  - first: {x: -1, y: -1, z: 0}
+    second:
+      m_TileIndex: 14
+      m_TileSpriteIndex: 14
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_ObjectToInstantiate: {fileID: 0}
@@ -241,6 +250,8 @@ Tilemap:
     m_Data: {fileID: 11400000, guid: 2962bb85a9e528c459d9fd977a238963, type: 2}
   - m_RefCount: 1
     m_Data: {fileID: 11400000, guid: aa259abe0c0f9974687a0493c2362d8d, type: 2}
+  - m_RefCount: 1
+    m_Data: {fileID: 11400000, guid: f346bcbaecc5ca44a9e2f71dd1b9a13d, type: 2}
   m_TileSpriteArray:
   - m_RefCount: 1
     m_Data: {fileID: 21300000, guid: 8c90dea422518ea4a9c10e20b6b1c1b5, type: 3}
@@ -270,8 +281,10 @@ Tilemap:
     m_Data: {fileID: 21300000, guid: 56839dcd3cf9b6a40aa62ac475f6d53d, type: 3}
   - m_RefCount: 1
     m_Data: {fileID: 21300000, guid: a7f0d1ecfe08fd140b1867db25c06efa, type: 3}
+  - m_RefCount: 1
+    m_Data: {fileID: 21300000, guid: 5ff305993e0aa1845aadb6755237123d, type: 3}
   m_TileMatrixArray:
-  - m_RefCount: 14
+  - m_RefCount: 15
     m_Data:
       e00: 1
       e01: 0
@@ -290,12 +303,12 @@ Tilemap:
       e32: 0
       e33: 1
   m_TileColorArray:
-  - m_RefCount: 12
+  - m_RefCount: 13
     m_Data: {r: 1, g: 1, b: 1, a: 1}
   - m_RefCount: 1
-    m_Data: {r: 0.76979965, g: 0.3195211, b: 0.34280205, a: 1}
+    m_Data: {r: 0.9108118, g: 0.52540636, b: 0.59950286, a: 1}
   - m_RefCount: 1
-    m_Data: {r: 0.9685934, g: 0.6606315, b: 0.76056176, a: 1}
+    m_Data: {r: 0.73756796, g: 0.31567934, b: 0.38558304, a: 1}
   m_AnimationFrameRate: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Origin: {x: -4, y: -2, z: 0}

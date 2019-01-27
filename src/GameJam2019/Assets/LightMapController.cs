@@ -82,13 +82,13 @@ public class LightMapController : MonoBehaviour
 			var lineRenderer = myLine.GetComponent<LineRenderer>();
 			lineRenderer.SetPosition(0, new Vector3(lineSegment.Start.x, lineSegment.Start.y, 10f));
 			lineRenderer.SetPosition(1, new Vector3(lineSegment.End.x, lineSegment.End.y, 10f));
-			lineRenderer.startColor = Color.yellow;
-			lineRenderer.endColor = Color.yellow;
+			lineRenderer.startColor = Color.blue;
+			lineRenderer.endColor = Color.blue;
 
 			return new LineSegmentAndAssociatedRenderer(lineSegment, lineRenderer);
 		}).ToArray();
 
-		_quadTree = new QuadTree<LineSegmentAndAssociatedRenderer>(0, 0, _mapWidth, _mapHeight, 25);
+		_quadTree = new QuadTree<LineSegmentAndAssociatedRenderer>(0, 0, _mapWidth + 3.3f, _mapHeight + 3.3f, 25);
 		foreach (var obj in objects)
 			_quadTree.Insert(obj);
 	}
@@ -148,15 +148,15 @@ public class QuadTree<T>
 	/// <summary>
 	/// 
 	/// </summary>
-	/// <param name="x">The X-coordinate of the quadtree center.</param>
-	/// <param name="y">The Y-coordinate of the quadtree center.</param>
+	/// <param name="centerX">The X-coordinate of the quadtree center.</param>
+	/// <param name="centerY">The Y-coordinate of the quadtree center.</param>
 	/// <param name="width">The width of the quadtree boundary.</param>
 	/// <param name="height">The height of the quadtree boundary.</param>
 	/// <param name="minimumArea">The minimum area (in pixels) that nodes must occupy.</param>
-	public QuadTree(float x, float y, float width, float height, int minimumArea = 100)
+	public QuadTree(float centerX, float centerY, float width, float height, int minimumArea = 100)
 	{
 		_minimumArea = minimumArea;
-		_bounds = new Bounds(new Vector3(x, y), new Vector3(width, height, 2));
+		_bounds = new Bounds(new Vector3(centerX, centerY), new Vector3(width, height, 2));
 		_root = new QuadTreeNode(_bounds, minimumArea);
 		_allItems = new List<T>();
 	}
@@ -247,7 +247,7 @@ public class QuadTree<T>
 		/// <summary>
 		/// Indicates if the node is empty.
 		/// </summary>
-		public bool IsEmpty => (Math.Abs(Bounds.size.x) < 0.01f && Math.Abs(Bounds.size.y) < 0.01f) || !_nodes.Any();
+		public bool IsEmpty => (Math.Abs(Bounds.size.x) < 0.01f && Math.Abs(Bounds.size.y) < 0.01f) || (!_nodes.Any() && !_contents.Any());
 
 		/// <summary>
 		/// Gets the AABB of the quadtree node.
@@ -297,11 +297,11 @@ public class QuadTree<T>
 			if (Bounds.size.y * Bounds.size.x <= _minimumArea)
 				return;
 
-			var nodeSize = new Vector2(Bounds.extents.x, Bounds.extents.y);
-			_nodes.Add(new QuadTreeNode(new Bounds(Bounds.center - Bounds.extents / 2, nodeSize), _minimumArea));
-			_nodes.Add(new QuadTreeNode(new Bounds(Bounds.center + new Vector3(Bounds.extents.x / 2, - Bounds.extents.y / 2), nodeSize), _minimumArea));
+			var nodeSize = new Vector3(Bounds.extents.x, Bounds.extents.y, Bounds.size.z);
+			_nodes.Add(new QuadTreeNode(new Bounds(Bounds.center + new Vector3(-Bounds.extents.x / 2, -Bounds.extents.y / 2), nodeSize), _minimumArea));
+			_nodes.Add(new QuadTreeNode(new Bounds(Bounds.center + new Vector3(Bounds.extents.x / 2, -Bounds.extents.y / 2), nodeSize), _minimumArea));
 			_nodes.Add(new QuadTreeNode(new Bounds(Bounds.center + new Vector3(-Bounds.extents.x / 2, Bounds.extents.y / 2), nodeSize), _minimumArea));
-			_nodes.Add(new QuadTreeNode(new Bounds(Bounds.center + Bounds.extents / 2, nodeSize), _minimumArea));
+			_nodes.Add(new QuadTreeNode(new Bounds(Bounds.center + new Vector3(Bounds.extents.x / 2, Bounds.extents.y / 2), nodeSize), _minimumArea));
 		}
 
 		/// <summary>
@@ -349,7 +349,7 @@ public class QuadTree<T>
 		{
 			// This node contains items that are not entirely contained by it's four sub-nodes
 			// Check if any items in this node intersect with the specified area
-			var results = _contents.Where(item => area.Intersects(item.AABB)).ToList();
+			var results = _contents.Where(item => item.AABB.Intersects(area) || area.Intersects(item.AABB) || area.Contains(item.AABB)).ToList();
 
 			foreach (var node in _nodes.Where(n => !n.IsEmpty))
 			{
@@ -384,9 +384,9 @@ public static class BoundsExtensions
 {
 	public static bool Contains(this Bounds source, Bounds bounds)
 	{
-		return source.Contains(new Vector3(bounds.min.x, bounds.min.y))
+		return source.Contains(bounds.min)
 			&& source.Contains(new Vector3(bounds.min.x, bounds.max.y))
 			&& source.Contains(new Vector3(bounds.max.x, bounds.min.y))
-			&& source.Contains(new Vector3(bounds.max.x, bounds.max.y));
+			&& source.Contains(bounds.max);
 	}
 }

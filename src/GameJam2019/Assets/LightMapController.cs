@@ -28,7 +28,7 @@ public class LightMapController : MonoBehaviour
 	void Start()
 	{
 		// DEBUGGING ONLY (for camera bounds)
-		/*var bounds = GetCameraBounds();
+		var bounds = GetCameraBounds();
 		var lineRenderer = Player.AddComponent<LineRenderer>();
 		lineRenderer.positionCount = 8;
 		lineRenderer.SetPosition(0, new Vector3(bounds.center.x, bounds.center.y, 10f));
@@ -43,7 +43,7 @@ public class LightMapController : MonoBehaviour
 		lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
 		lineRenderer.startColor = Color.red;
 		lineRenderer.endColor = Color.red;
-		lineRenderer.sortingOrder = 105;*/
+		lineRenderer.sortingOrder = 105;
 	}
 
 	// Update is called once per frame
@@ -53,7 +53,22 @@ public class LightMapController : MonoBehaviour
 			item.LineRenderer.enabled = false;
 
 		var bounds = GetCameraBounds();
-		/*var lineRenderer = Player.GetComponent<LineRenderer>();
+
+		var items = _quadTree.Query(bounds);
+		foreach (var item in items)
+			item.LineRenderer.enabled = true;
+
+		/*
+		*Ray X = r_px+r_dx*T1
+		Ray Y = r_py+r_dy*T1
+		Segment X = s_px+s_dx*T2
+		Segment Y = s_py+s_dy*T2
+		*/
+
+		//T2 = (r_dx*(s_py-r_py) + r_dy*(r_px-s_px))/(s_dx*r_dy - s_dy*r_dx)
+		//T1 = (s_px + s_dx * T2 - r_px) / r_dx
+		// TODO: calculate the intersections of the lines and wall edges
+		var lineRenderer = Player.GetComponent<LineRenderer>();
 		lineRenderer.SetPosition(0, new Vector3(bounds.center.x, bounds.center.y, 10f));
 		lineRenderer.SetPosition(1, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y - bounds.extents.y, 10f));
 		lineRenderer.SetPosition(2, new Vector3(bounds.center.x, bounds.center.y, 10f));
@@ -61,11 +76,7 @@ public class LightMapController : MonoBehaviour
 		lineRenderer.SetPosition(4, new Vector3(bounds.center.x, bounds.center.y, 10f));
 		lineRenderer.SetPosition(5, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));
 		lineRenderer.SetPosition(6, new Vector3(bounds.center.x, bounds.center.y, 10f));
-		lineRenderer.SetPosition(7, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));*/
-
-		var items = _quadTree.Query(bounds);
-		foreach (var item in items)
-			item.LineRenderer.enabled = true;
+		lineRenderer.SetPosition(7, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));
 	}
 
 	public void SetLightmapData(int mapWidth, int mapHeight, IEnumerable<LineSegment> lineSegmentCollection)

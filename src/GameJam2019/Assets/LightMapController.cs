@@ -113,7 +113,7 @@ public class LightMapController : MonoBehaviour
 		public int GetHashCode(Vector2 obj) => obj.GetHashCode();
 	}
 
-	private const float MAXIMUM_LIGHT_CAST = 12.5f;
+	private const float MAXIMUM_LIGHT_CAST = 20f;
 	private static Vector2 GetDirectionalLightVector2(Vector2 rayOrigin, Vector2 rayDirection, IEnumerable<LineSegment> lineSegments)
 	{
 		float t1 = MAXIMUM_LIGHT_CAST;

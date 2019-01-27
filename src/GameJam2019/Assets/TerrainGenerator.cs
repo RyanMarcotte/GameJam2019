@@ -259,7 +259,7 @@ public class TerrainGenerator : MonoBehaviour
 				rectanglesLeftToProcess.Remove(nodeToRemove);
 		}
 
-		lineSegmentCollection.AddRange(rectangles.SelectMany(rect => GetLineSegmentsFromRectangle(rect, width, height)));
+		lineSegmentCollection.AddRange(rectGroups.SelectMany(x => GetLineSegmentsFromRectangle(x, width, height)));
 		return lineSegmentCollection.ToArray();
 	}
 
@@ -332,16 +332,19 @@ public class TerrainGenerator : MonoBehaviour
 		return new Rect(cellX, cellY, width, height);
 	}
 
-	private static IEnumerable<LineSegment> GetLineSegmentsFromRectangle(Rect rect, int width, int height)
+	private static IEnumerable<LineSegment> GetLineSegmentsFromRectangle(Rect[] rectCollection, int width, int height)
 	{
-		var rectTopLeftCorner = new Vector2(rect.xMin - width / 2, rect.yMax - height / 2);
-		var rectTopRightCorner = new Vector2(rect.xMax - width / 2, rect.yMax - height / 2);
-		var rectBottomLeftCorner = new Vector2(rect.xMin - width / 2, rect.yMin - height / 2);
-		var rectBottomRightCorner = new Vector2(rect.xMax - width / 2, rect.yMin - height / 2);
+		foreach (var rect in rectCollection)
+		{
+			var rectTopLeftCorner = new Vector2(rect.xMin - width / 2, rect.yMax - height / 2);
+			var rectTopRightCorner = new Vector2(rect.xMax - width / 2, rect.yMax - height / 2);
+			var rectBottomLeftCorner = new Vector2(rect.xMin - width / 2, rect.yMin - height / 2);
+			var rectBottomRightCorner = new Vector2(rect.xMax - width / 2, rect.yMin - height / 2);
 
-		yield return new LineSegment(rectTopLeftCorner, rectBottomLeftCorner);
-		yield return new LineSegment(rectBottomLeftCorner, rectBottomRightCorner);
-		yield return new LineSegment(rectBottomRightCorner, rectTopRightCorner);
-		yield return new LineSegment(rectTopRightCorner, rectTopLeftCorner);
+			yield return new LineSegment(rectTopLeftCorner, rectBottomLeftCorner);
+			yield return new LineSegment(rectBottomLeftCorner, rectBottomRightCorner);
+			yield return new LineSegment(rectBottomRightCorner, rectTopRightCorner);
+			yield return new LineSegment(rectTopRightCorner, rectTopLeftCorner);
+		}
 	}
 }

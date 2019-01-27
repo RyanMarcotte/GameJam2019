@@ -99,7 +99,7 @@ public class LightMapController : MonoBehaviour
 		lineRenderer.SetPosition(7, origin + GetDirectionalLightVector2(origin, direction4, lineSegmentsToTest));
 	}
 
-	private const float MAXIMUM_LIGHT_CAST = 7.5f;
+	private const float MAXIMUM_LIGHT_CAST = 12.5f;
 	private static Vector2 GetDirectionalLightVector2(Vector2 rayOrigin, Vector2 rayDirection, IEnumerable<LineSegment> lineSegments)
 	{
 		float t1 = MAXIMUM_LIGHT_CAST;

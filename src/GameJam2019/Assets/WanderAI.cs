@@ -31,7 +31,7 @@ public class WanderAI : MonoBehaviour {
         }
         if (isRotatingLeft == true)
         {
-            transform.Rotate(Vector3.forward * Time.deltaTime * -rotSpeed);
+            transform.Rotate(Vector3.forward * Time.deltaTime * rotSpeed);
         }
         if(isWalking == true)
         {

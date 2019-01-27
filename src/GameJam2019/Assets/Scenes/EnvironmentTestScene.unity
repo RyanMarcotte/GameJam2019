@@ -308,11 +308,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5a5815fc6323df4ebd127e1fd4879a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GroundTile: {fileID: 11400000, guid: 77fb8976ba932ee4290fd0d33d04a5c2, type: 2}
-  ObstacleTiles:
-  - {fileID: 11400000, guid: c4b18787685bcec4097731839c174462, type: 2}
-  - {fileID: 11400000, guid: 35b7da60a3b97094fb001102eb31098b, type: 2}
-  - {fileID: 11400000, guid: e123075e6f5baf849bc76255f5a52710, type: 2}
   Floor: {fileID: 26616118}
   Obstacles: {fileID: 305802060}
   LightMap: {fileID: 0}
@@ -566,16 +561,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Item(shake)
       objectReference: {fileID: 0}
-    - target: {fileID: 2110533666189165021, guid: a3b2ff68c2d57334da343efc0e9ef5d6,
-        type: 3}
-      propertyPath: Player
-      value: 
-      objectReference: {fileID: 1150798859}
-    - target: {fileID: 2110533666189165021, guid: a3b2ff68c2d57334da343efc0e9ef5d6,
-        type: 3}
-      propertyPath: Camera
-      value: 
-      objectReference: {fileID: 1912890030}
     - target: {fileID: 2110533666189165023, guid: a3b2ff68c2d57334da343efc0e9ef5d6,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -630,6 +615,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2110533666189165021, guid: a3b2ff68c2d57334da343efc0e9ef5d6,
+        type: 3}
+      propertyPath: Player
+      value: 
+      objectReference: {fileID: 1150798859}
+    - target: {fileID: 2110533666189165021, guid: a3b2ff68c2d57334da343efc0e9ef5d6,
+        type: 3}
+      propertyPath: Camera
+      value: 
+      objectReference: {fileID: 1912890030}
+    - target: {fileID: 2110533666189165020, guid: a3b2ff68c2d57334da343efc0e9ef5d6,
+        type: 3}
+      propertyPath: m_SortingOrder
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a3b2ff68c2d57334da343efc0e9ef5d6, type: 3}

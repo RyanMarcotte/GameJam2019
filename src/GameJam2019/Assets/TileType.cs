@@ -4,5 +4,7 @@
 	Stump,
 	Tree,
 	Log,
-	Bush
+	Bush,
+	NoiseSprite,
+	ShakeSprite
 }

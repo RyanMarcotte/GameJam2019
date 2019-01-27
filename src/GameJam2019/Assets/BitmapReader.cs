@@ -26,6 +26,10 @@ public class BitmapReader
 			return TileType.Tree;
 		if (pixelColour == Color.green)
 			return TileType.Bush;
+		if (pixelColour == Color.magenta)
+			return TileType.ShakeSprite;
+		if (pixelColour == Color.cyan)
+			return TileType.NoiseSprite;
 		return TileType.Ground;
 	}
 }

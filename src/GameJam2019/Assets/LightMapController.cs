@@ -39,15 +39,6 @@ public class LightMapController : MonoBehaviour
 		// DEBUGGING ONLY (for camera bounds)
 		var bounds = GetPlayerBounds();
 		var lineRenderer = Player.AddComponent<LineRenderer>();
-		lineRenderer.positionCount = 8;
-		lineRenderer.SetPosition(0, new Vector3(bounds.center.x, bounds.center.y, 10f));
-		lineRenderer.SetPosition(1, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y - bounds.extents.y, 10f));
-		lineRenderer.SetPosition(2, new Vector3(bounds.center.x, bounds.center.y, 10f));
-		lineRenderer.SetPosition(3, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y - bounds.extents.y, 10f));
-		lineRenderer.SetPosition(4, new Vector3(bounds.center.x, bounds.center.y, 10f));
-		lineRenderer.SetPosition(5, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));
-		lineRenderer.SetPosition(6, new Vector3(bounds.center.x, bounds.center.y, 10f));
-		lineRenderer.SetPosition(7, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));
 		lineRenderer.widthMultiplier = 0.1f;
 		lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
 		lineRenderer.startColor = Color.red;
@@ -81,10 +72,27 @@ public class LightMapController : MonoBehaviour
 		lineRenderer.SetPosition(7, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));*/
 
 		var lineSegmentsToTest = linesToTest.Select(x => x.LineSegment).ToArray();
-		var direction1 = (new Vector2(playerBounds.center.x - playerBounds.extents.x, playerBounds.center.y - playerBounds.extents.y) - origin).normalized;
+		/*var direction1 = (new Vector2(playerBounds.center.x - playerBounds.extents.x, playerBounds.center.y - playerBounds.extents.y) - origin).normalized;
 		var direction2 = (new Vector2(playerBounds.center.x + playerBounds.extents.x, playerBounds.center.y - playerBounds.extents.y) - origin).normalized;
 		var direction3 = (new Vector2(playerBounds.center.x - playerBounds.extents.x, playerBounds.center.y + playerBounds.extents.y) - origin).normalized;
-		var direction4 = (new Vector2(playerBounds.center.x + playerBounds.extents.x, playerBounds.center.y + playerBounds.extents.y) - origin).normalized;
+		var direction4 = (new Vector2(playerBounds.center.x + playerBounds.extents.x, playerBounds.center.y + playerBounds.extents.y) - origin).normalized;*/
+
+		int count = 0;
+		var uniquePoints = lineSegmentsToTest.SelectMany(x => new[] { x.Start, x.End }).Distinct(new Vector2EqualityComparer()).ToArray();
+		lineRenderer.positionCount = uniquePoints.Length * 2;
+		var anglesForUniquePoints = uniquePoints.SelectMany(uniquePoint => new[] { Math.Atan2(uniquePoint.y - playerBounds.center.y, uniquePoint.x - playerBounds.center.x) }).OrderBy(x => x).ToArray();
+		foreach (var angle in anglesForUniquePoints)
+		{
+			lineRenderer.SetPosition(count, origin);
+			lineRenderer.SetPosition(count + 1, origin + GetDirectionalLightVector2(origin, new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)), lineSegmentsToTest));
+
+			count += 2;
+		}
+
+		/*foreach (var lineSegment in lineSegmentsToTest)
+		{
+			var direction = (new Vector2(lineSegment.StartplayerBounds.center.x - playerBounds.extents.x, playerBounds.center.y - playerBounds.extents.y) - origin).normalized;
+		}
 
 		lineRenderer.SetPosition(0, origin);
 		lineRenderer.SetPosition(1, origin + GetDirectionalLightVector2(origin, direction1, lineSegmentsToTest));
@@ -96,18 +104,31 @@ public class LightMapController : MonoBehaviour
 		lineRenderer.SetPosition(5, origin + GetDirectionalLightVector2(origin, direction3, lineSegmentsToTest));
 
 		lineRenderer.SetPosition(6, origin);
-		lineRenderer.SetPosition(7, origin + GetDirectionalLightVector2(origin, direction4, lineSegmentsToTest));
+		lineRenderer.SetPosition(7, origin + GetDirectionalLightVector2(origin, direction4, lineSegmentsToTest));*/
 	}
 
-	private const float MAXIMUM_LIGHT_CAST = 12.5f;
+	private const float MAXIMUM_LIGHT_CAST = 205f;
 	private static Vector2 GetDirectionalLightVector2(Vector2 rayOrigin, Vector2 rayDirection, IEnumerable<LineSegment> lineSegments)
 	{
 		float t1 = MAXIMUM_LIGHT_CAST;
 		foreach (var lineSegment in lineSegments)
 		{
-			var t1a = GetT1(rayOrigin, rayDirection, lineSegment.Start, (lineSegment.End - lineSegment.Start));
+			const float MULTIPLIER = 0.05f;
+			var t1a = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.up * MULTIPLIER, (lineSegment.End - lineSegment.Start));
 			if (t1a < t1)
 				t1 = t1a;
+
+			var t1b = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.right * MULTIPLIER, (lineSegment.End - lineSegment.Start));
+			if (t1b < t1)
+				t1 = t1b;
+
+			var t1c = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.down * MULTIPLIER, (lineSegment.End - lineSegment.Start));
+			if (t1c < t1)
+				t1 = t1c;
+
+			var t1d = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.left * MULTIPLIER, (lineSegment.End - lineSegment.Start));
+			if (t1d < t1)
+				t1 = t1d;
 		}
 
 		return rayDirection * t1;
@@ -171,6 +192,12 @@ public class LightMapController : MonoBehaviour
 		
 		public Bounds AABB => LineSegment.AABB;
 	}
+}
+
+internal class Vector2EqualityComparer : IEqualityComparer<Vector2>
+{
+	public bool Equals(Vector2 v1, Vector2 v2) => Math.Abs(v1.x - v2.x) < 0.01f && Math.Abs(v1.y - v2.y) < 0.01f;
+	public int GetHashCode(Vector2 obj) => obj.GetHashCode();
 }
 
 public class LineSegment : Tuple<Vector2, Vector2>, IHasAABB

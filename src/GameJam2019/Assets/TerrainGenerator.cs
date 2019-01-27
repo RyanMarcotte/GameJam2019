@@ -48,7 +48,7 @@ public class TerrainGenerator : MonoBehaviour
 		_tree_bottomright = Resources.Load<Tile>("tiles/treebottomright");
 
 		var bitmapReader = new BitmapReader();
-		var levelMap = bitmapReader.Read("Levels/map01");
+		var levelMap = bitmapReader.Read("Levels/map02");
 
 		if (levelMap == null || levelMap.GetLength(0) == 0 || levelMap.GetLength(1) == 0)
 		{

@@ -55,4 +55,11 @@ public static class Vector2Extensions
 		result.Normalize();
 		return result;
 	}
+
+	public static Vector3 ToNormalizedVector3(this Vector3 source)
+	{
+		var result = new Vector3(source.x, source.y, source.z);
+		result.Normalize();
+		return result;
+	}
 }

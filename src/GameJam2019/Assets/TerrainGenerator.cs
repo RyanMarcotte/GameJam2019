@@ -36,11 +36,17 @@ public class TerrainGenerator : MonoBehaviour
 			for (int x = GetLowerBound(SizeX); x < GetUpperBound(SizeX); x++)
 			{
 				var tile = levelMap[y + (SizeY / 2), x + (SizeX / 2)];
-				if (y == GetLowerBound(SizeY)
-				    || y == GetUpperBound(SizeY) - 1
-				    || x == GetUpperBound(SizeX) - 1
-				    || x == GetLowerBound(SizeX))
-					Obstacles.SetTile(new Vector3Int(x, y, -1), ObstacleTile);
+				if (y == GetLowerBound(SizeY))
+					Obstacles.SetTile(new Vector3Int(x, y - 1, -1), ObstacleTile);
+
+				if (y == GetUpperBound(SizeY) - 1)
+					Obstacles.SetTile(new Vector3Int(x, y + 1, -1), ObstacleTile);
+
+				if (x == GetUpperBound(SizeX) - 1)
+					Obstacles.SetTile(new Vector3Int(x + 1, y, -1), ObstacleTile);
+
+				if (x == GetLowerBound(SizeX))
+					Obstacles.SetTile(new Vector3Int(x - 1, y, -1), ObstacleTile);
 
 				if (tile == TileType.Ground)
 					Floor.SetTile(new Vector3Int(x, y, 0), GroundTile);
@@ -95,10 +101,10 @@ public class TerrainGenerator : MonoBehaviour
 		int height = tileMap.GetLength(0);
 
 		var lineSegmentCollection = new List<LineSegment>();
-		var topLeftCorner = new Vector2(-width / 2 + 1, height / 2 - 1);
-		var topRightCorner = new Vector2(width / 2 - 1, height / 2 - 1);
-		var bottomLeftCorner = new Vector2(-width / 2 + 1, -height / 2 + 1);
-		var bottomRightCorner = new Vector2(width / 2 - 1, -height / 2 + 1);
+		var topLeftCorner = new Vector2(-width / 2, height / 2);
+		var topRightCorner = new Vector2(width / 2, height / 2);
+		var bottomLeftCorner = new Vector2(-width / 2, -height / 2);
+		var bottomRightCorner = new Vector2(width / 2, -height / 2);
 
 		lineSegmentCollection.Add(new LineSegment(topLeftCorner, bottomLeftCorner));
 		lineSegmentCollection.Add(new LineSegment(bottomLeftCorner, bottomRightCorner));

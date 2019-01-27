@@ -16,13 +16,13 @@ public class LightMapController : MonoBehaviour
 
 	private Bounds GetCameraBounds()
 	{
-		//var position = Player.transform.position;
+		var position = Player.transform.position;
 
 		var camera = Camera.main.GetComponent<Camera>();
 		float screenAspect = (float)Screen.width / (float)Screen.height;
 		float cameraHeight = camera.orthographicSize * 2;
 		var boundsSize = new Vector2(cameraHeight * screenAspect, cameraHeight);
-		return new Bounds(new Vector2(camera.transform.position.x, camera.transform.position.y), boundsSize);
+		return new Bounds(new Vector2(position.x, position.y), boundsSize);
 	}
 
 	void Start()
@@ -69,14 +69,32 @@ public class LightMapController : MonoBehaviour
 		//T1 = (s_px + s_dx * T2 - r_px) / r_dx
 		// TODO: calculate the intersections of the lines and wall edges
 		var lineRenderer = Player.GetComponent<LineRenderer>();
-		lineRenderer.SetPosition(0, new Vector3(bounds.center.x, bounds.center.y, 10f));
+		var origin = new Vector3(bounds.center.x, bounds.center.y, 0f);
+		lineRenderer.SetPosition(0, origin);
 		lineRenderer.SetPosition(1, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y - bounds.extents.y, 10f));
-		lineRenderer.SetPosition(2, new Vector3(bounds.center.x, bounds.center.y, 10f));
+		lineRenderer.SetPosition(2, origin);
 		lineRenderer.SetPosition(3, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y - bounds.extents.y, 10f));
-		lineRenderer.SetPosition(4, new Vector3(bounds.center.x, bounds.center.y, 10f));
+		lineRenderer.SetPosition(4, origin);
 		lineRenderer.SetPosition(5, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));
-		lineRenderer.SetPosition(6, new Vector3(bounds.center.x, bounds.center.y, 10f));
+		lineRenderer.SetPosition(6, origin);
 		lineRenderer.SetPosition(7, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));
+
+		/*var direction1 = new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y - bounds.extents.y).ToNormalizedVector3() * 5;
+		var direction2 = new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y - bounds.extents.y).ToNormalizedVector3() * 5;
+		var direction3 = new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y + bounds.extents.y).ToNormalizedVector3() * 5;
+		var direction4 = new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y).ToNormalizedVector3() * 5;
+
+		lineRenderer.SetPosition(0, origin);
+		lineRenderer.SetPosition(1, origin + direction1);
+
+		lineRenderer.SetPosition(2, origin);
+		lineRenderer.SetPosition(3, origin + direction2);
+
+		lineRenderer.SetPosition(4, origin);
+		lineRenderer.SetPosition(5, origin + direction3);
+
+		lineRenderer.SetPosition(6, origin);
+		lineRenderer.SetPosition(7, origin + direction4);*/
 	}
 
 	public void SetLightmapData(int mapWidth, int mapHeight, IEnumerable<LineSegment> lineSegmentCollection)

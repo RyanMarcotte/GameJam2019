@@ -17,12 +17,17 @@ public class LightMapController : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
-		/*var camera = Camera.main.GetComponent<Camera>();
+		//var position = Player.transform.position;
+		foreach (var item in _quadTree.Items)
+			item.LineRenderer.enabled = false;
+
+		var camera = Camera.main.GetComponent<Camera>();
 		float screenAspect = (float)Screen.width / (float)Screen.height;
 		float cameraHeight = camera.orthographicSize * 2;
-		var bounds = new Bounds(camera.transform.position, new Vector3(cameraHeight * screenAspect, cameraHeight, 0));*/
-
-		var position = Player.transform.position;
+		var boundsSize = new Vector2(cameraHeight * screenAspect, cameraHeight);
+		var bounds = new Bounds(new Vector2(camera.transform.position.x, camera.transform.position.y), boundsSize / 4);
+		foreach (var item in _quadTree.Query(bounds))
+			item.LineRenderer.enabled = true;
 	}
 
 	public void SetLightmapData(int mapWidth, int mapHeight, IEnumerable<LineSegment> lineSegmentCollection)
@@ -31,12 +36,12 @@ public class LightMapController : MonoBehaviour
 		_mapHeight = mapHeight;
 		_lineSegmentCollection = lineSegmentCollection.ToArray();
 
-		// TODO: remove after debugging is complete
 		var objects = _lineSegmentCollection.Select(lineSegment =>
 		{
 			GameObject myLine = GameObject.Instantiate(Resources.Load("Line")) as GameObject;
 			myLine.transform.position = lineSegment.Start;
 
+			// TODO: remove after debugging is complete
 			var lineRenderer = myLine.GetComponent<LineRenderer>();
 			lineRenderer.SetPosition(0, new Vector3(lineSegment.Start.x, lineSegment.Start.y, 10f));
 			lineRenderer.SetPosition(1, new Vector3(lineSegment.End.x, lineSegment.End.y, 10f));
@@ -46,7 +51,7 @@ public class LightMapController : MonoBehaviour
 			return new LineSegmentAndAssociatedRenderer(lineSegment, lineRenderer);
 		}).ToArray();
 
-		_quadTree = new QuadTree<LineSegmentAndAssociatedRenderer>(-_mapWidth / 2, -_mapHeight / 2, _mapWidth, _mapHeight, 9);
+		_quadTree = new QuadTree<LineSegmentAndAssociatedRenderer>(0, 0, _mapWidth, _mapHeight, 25);
 		foreach (var obj in objects)
 			_quadTree.Insert(obj);
 	}
@@ -62,14 +67,12 @@ public class LightMapController : MonoBehaviour
 		public LineSegment LineSegment { get; }
 		public LineRenderer LineRenderer { get; }
 		
-		public Rect AABB => LineSegment.AABB;
+		public Bounds AABB => LineSegment.AABB;
 	}
 }
 
 public class LineSegment : Tuple<Vector2, Vector2>, IHasAABB
 {
-	private readonly Rect _aabb;
-
 	public LineSegment(Vector2 start, Vector2 end)
 		: base(start, end)
 	{
@@ -81,19 +84,19 @@ public class LineSegment : Tuple<Vector2, Vector2>, IHasAABB
 		if (width < 1)
 			width = 0.1f;
 
-		var topLeftX = Math.Min(start.x, end.x);
-		var topLeftY = Math.Max(start.y, end.y);
-		_aabb = new Rect(topLeftX, topLeftY, width, height);
+		var centerX = (start.x + end.x) / 2;
+		var centerY = (start.y + end.y) / 2;
+		AABB = new Bounds(new Vector3(centerX, centerY), new Vector3(width, height));
 	}
 
 	public Vector2 Start => Item1;
 	public Vector2 End => Item2;
-	public Rect AABB => _aabb;
+	public Bounds AABB { get; }
 }
 
 public interface IHasAABB
 {
-	Rect AABB { get; }
+	Bounds AABB { get; }
 }
 
 public class QuadTree<T>
@@ -101,22 +104,24 @@ public class QuadTree<T>
 {
 	private readonly int _minimumArea;
 
-	private Rect _bounds;
-	private QuadTreeNode _root;
+	private readonly Bounds _bounds;
+	private readonly QuadTreeNode _root;
+	private readonly List<T> _allItems;
 
 	/// <summary>
 	/// 
 	/// </summary>
-	/// <param name="x">The X-coordinate of the top-left corner of the quadtree boundary.</param>
-	/// <param name="y">The Y-coordinate of the top-left corner of the quadtree boundary.</param>
+	/// <param name="x">The X-coordinate of the quadtree center.</param>
+	/// <param name="y">The Y-coordinate of the quadtree center.</param>
 	/// <param name="width">The width of the quadtree boundary.</param>
 	/// <param name="height">The height of the quadtree boundary.</param>
 	/// <param name="minimumArea">The minimum area (in pixels) that nodes must occupy.</param>
 	public QuadTree(float x, float y, float width, float height, int minimumArea = 100)
 	{
 		_minimumArea = minimumArea;
-		_bounds = new Rect(x, y, width, height);
+		_bounds = new Bounds(new Vector3(x, y), new Vector3(width, height));
 		_root = new QuadTreeNode(_bounds, minimumArea);
+		_allItems = new List<T>();
 	}
 
 	/// <summary>
@@ -125,21 +130,22 @@ public class QuadTree<T>
 	/// <param name="bounds">The boundary of the quadtree.</param>
 	/// <param name="minimumArea">The minimum area (in pixels) that nodes must occupy.</param>
 	public QuadTree(Rect bounds, int minimumArea = 100)
+		: this(bounds.x, bounds.y, bounds.width, bounds.height, minimumArea)
 	{
-		_minimumArea = minimumArea;
-		_bounds = bounds;
-		_root = new QuadTreeNode(_bounds, minimumArea);
+		
 	}
 
 	/// <summary>
 	/// Gets the bounds.
 	/// </summary>
-	public Rect Bounds => _bounds;
+	public Bounds Bounds => _bounds;
 
 	/// <summary>
 	/// Gets the number of items in the quadtree.
 	/// </summary>
 	public int Count => _root.Count;
+
+	public IEnumerable<T> Items => _allItems;
 
 	/// <summary>
 	/// Insert an item into the quadtree.
@@ -148,6 +154,7 @@ public class QuadTree<T>
 	public void Insert(T item)
 	{
 		_root.Insert(item);
+		_allItems.Add(item);
 	}
 
 	/// <summary>
@@ -176,18 +183,9 @@ public class QuadTree<T>
 	/// </summary>
 	/// <param name="area">The area to test.</param>
 	/// <returns>A collection of items that are in the given area.</returns>
-	public IEnumerable<T> Query(Rect area)
+	public IEnumerable<T> Query(Bounds area)
 	{
 		return _root.Query(area);
-	}
-
-	/// <summary>
-	/// Removes an item from the quadtree.
-	/// </summary>
-	/// <param name="item">The item to remove.</param>
-	public void Remove(T item)
-	{
-		_root.Remove(item);
 	}
 
 	/// <summary>
@@ -203,7 +201,7 @@ public class QuadTree<T>
 		#region PRIVATE MEMBERS
 
 		private readonly int _minimumArea;
-		private readonly Rect _bounds;
+		private readonly Bounds _bounds;
 		private readonly List<T> _contents;
 		private readonly List<QuadTreeNode> _nodes;
 
@@ -216,7 +214,7 @@ public class QuadTree<T>
 		/// </summary>
 		/// <param name="bounds">The node bounds.</param>
 		/// <param name="minimumArea">The minimum area (in pixels) that nodes must occupy.</param>
-		public QuadTreeNode(Rect bounds, int minimumArea)
+		public QuadTreeNode(Bounds bounds, int minimumArea)
 		{
 			_minimumArea = minimumArea;
 			_bounds = bounds;
@@ -231,12 +229,12 @@ public class QuadTree<T>
 		/// <summary>
 		/// Indicates if the node is empty.
 		/// </summary>
-		public bool IsEmpty => (Math.Abs(_bounds.width) < 0.01f && Math.Abs(_bounds.height) < 0.01f) || !_nodes.Any();
+		public bool IsEmpty => (Math.Abs(_bounds.size.x) < 0.01f && Math.Abs(_bounds.size.y) < 0.01f) || !_nodes.Any();
 
 		/// <summary>
 		/// Gets the AABB of the quadtree node.
 		/// </summary>
-		public Rect Bounds => _bounds;
+		public Bounds Bounds => _bounds;
 
 		/// <summary>
 		/// Gets the number of items in this node and all subnodes.
@@ -282,16 +280,16 @@ public class QuadTree<T>
 		private void CreateSubNodes()
 		{
 			// The smallest subnode has an area
-			if (_bounds.height * _bounds.width <= _minimumArea)
+			if (_bounds.size.y * _bounds.size.x <= _minimumArea)
 				return;
 
-			float halfWidth = (_bounds.width / 2f);
-			float halfHeight = (_bounds.height / 2f);
+			float halfWidth = (_bounds.size.x / 2f);
+			float halfHeight = (_bounds.size.y / 2f);
 
-			_nodes.Add(new QuadTreeNode(new Rect(new Vector2(_bounds.xMin, _bounds.yMin), new Vector2(halfWidth, halfHeight)), _minimumArea));
-			_nodes.Add(new QuadTreeNode(new Rect(new Vector2(_bounds.xMin, _bounds.yMin + halfHeight), new Vector2(halfWidth, halfHeight)), _minimumArea));
-			_nodes.Add(new QuadTreeNode(new Rect(new Vector2(_bounds.xMin + halfWidth, _bounds.yMin), new Vector2(halfWidth, halfHeight)), _minimumArea));
-			_nodes.Add(new QuadTreeNode(new Rect(new Vector2(_bounds.xMin + halfWidth, _bounds.yMin + halfHeight), new Vector2(halfWidth, halfHeight)), _minimumArea));
+			_nodes.Add(new QuadTreeNode(new Bounds(new Vector2(_bounds.min.x + halfWidth / 2, _bounds.min.y + halfWidth / 2), new Vector2(halfWidth, halfHeight)), _minimumArea));
+			_nodes.Add(new QuadTreeNode(new Bounds(new Vector2(_bounds.min.x + halfWidth / 2, _bounds.min.y + halfHeight + halfWidth / 2), new Vector2(halfWidth, halfHeight)), _minimumArea));
+			_nodes.Add(new QuadTreeNode(new Bounds(new Vector2(_bounds.min.x + halfWidth + halfWidth / 2, _bounds.min.y + halfWidth / 2), new Vector2(halfWidth, halfHeight)), _minimumArea));
+			_nodes.Add(new QuadTreeNode(new Bounds(new Vector2(_bounds.min.x + halfWidth + halfWidth / 2, _bounds.min.y + halfHeight + halfWidth / 2), new Vector2(halfWidth, halfHeight)), _minimumArea));
 		}
 
 		#endregion
@@ -304,7 +302,7 @@ public class QuadTree<T>
 		/// <param name="item">The item to insert.</param>
 		public void Insert(T item)
 		{
-			if (!_bounds.Overlaps(item.AABB))
+			if (!_bounds.Contains(item.AABB))
 				return;
 
 			// Partition this node (if the size of this node is below the minimum-allowed size, this node is not partitioned)
@@ -313,7 +311,7 @@ public class QuadTree<T>
 
 			// If the node contains the item, add the item to that node and return
 			// The item is stored in the node just large enough to fit it
-			foreach (var node in _nodes.Where(n => n.Bounds.Overlaps(item.AABB)))
+			foreach (var node in _nodes.Where(n => n.Bounds.Contains(item.AABB)))
 			{
 				node.Insert(item);
 				return;
@@ -339,17 +337,17 @@ public class QuadTree<T>
 		/// </summary>
 		/// <param name="area">The area to test.</param>
 		/// <returns>A collection of items that are in the given area.</returns>
-		public IEnumerable<T> Query(Rect area)
+		public IEnumerable<T> Query(Bounds area)
 		{
 			// This node contains items that are not entirely contained by it's four sub-nodes
 			// Check if any items in this node intersect with the specified area
-			var results = _contents.Where(item => area.Overlaps(item.AABB)).ToList();
+			var results = _contents.Where(item => area.Intersects(item.AABB)).ToList();
 
 			foreach (var node in _nodes.Where(n => !n.IsEmpty))
 			{
 				// CASE 1: Search area completely contained by sub-node
 				// If a node completely contains the query area, go down that branch and skip the remaining nodes
-				if (node.Bounds.Overlaps(area))
+				if (node.Bounds.Contains(area))
 				{
 					results.AddRange(node.Query(area));
 					break;
@@ -357,7 +355,7 @@ public class QuadTree<T>
 
 				// CASE 2: Sub-node completely contained by search area
 				// If the query area completely contains a sub-node, just add all the contents of that node and its children to the result set
-				if (area.Overlaps(node.Bounds))
+				if (area.Contains(node.Bounds))
 				{
 					results.AddRange(node.Contents);
 					continue;
@@ -365,7 +363,7 @@ public class QuadTree<T>
 
 				// CASE 3: Search area intersects with sub-node
 				// Traverse into this node, then search other quads
-				if (node.Bounds.Overlaps(area))
+				if (node.Bounds.Intersects(area))
 					results.AddRange(node.Query(area));
 			}
 
@@ -385,24 +383,6 @@ public class QuadTree<T>
 		}
 
 		/// <summary>
-		/// Removes an item from the quadtree.
-		/// </summary>
-		/// <param name="item">The item to remove.</param>
-		public void Remove(T item)
-		{
-			if (!_bounds.Overlaps(item.AABB))
-				return;
-
-			foreach (var node in _nodes.Where(n => n.Bounds.Overlaps(item.AABB)))
-			{
-				node.Remove(item);
-				return;
-			}
-
-			_contents.Remove(item);
-		}
-
-		/// <summary>
 		/// Remove all contents from the node.
 		/// </summary>
 		internal void Clear()
@@ -413,5 +393,16 @@ public class QuadTree<T>
 		}
 
 		#endregion
+	}
+}
+
+public static class BoundsExtensions
+{
+	public static bool Contains(this Bounds source, Bounds bounds)
+	{
+		return source.Contains(new Vector3(bounds.min.x, bounds.min.y))
+			&& source.Contains(new Vector3(bounds.min.x, bounds.max.y))
+			&& source.Contains(new Vector3(bounds.max.x, bounds.min.y))
+			&& source.Contains(new Vector3(bounds.max.x, bounds.max.y));
 	}
 }

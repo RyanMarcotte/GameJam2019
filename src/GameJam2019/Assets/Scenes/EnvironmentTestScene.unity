@@ -308,8 +308,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5a5815fc6323df4ebd127e1fd4879a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GroundTile: {fileID: 11400000, guid: 080c1e03890025442b37db20e9c3415d, type: 2}
-  ObstacleTile: {fileID: 11400000, guid: 9719414a967735b4688b014b0b7e68ce, type: 2}
+  GroundTile: {fileID: 11400000, guid: 77fb8976ba932ee4290fd0d33d04a5c2, type: 2}
+  ObstacleTiles:
+  - {fileID: 11400000, guid: c4b18787685bcec4097731839c174462, type: 2}
+  - {fileID: 11400000, guid: 35b7da60a3b97094fb001102eb31098b, type: 2}
+  - {fileID: 11400000, guid: e123075e6f5baf849bc76255f5a52710, type: 2}
   Floor: {fileID: 26616118}
   Obstacles: {fileID: 305802060}
   LightMap: {fileID: 0}

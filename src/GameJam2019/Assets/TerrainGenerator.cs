@@ -5,12 +5,24 @@ using UnityEngine.Tilemaps;
 
 public class TerrainGenerator : MonoBehaviour
 {
-	public Tile GroundTile;
-	public Tile ObstacleTile;
+	//public Tile GroundTile;
+	//public Tile ObstacleTile;
+	//public Tile[] ObstacleTiles;
 
 	public Tilemap Floor;
 	public Tilemap Obstacles;
 	public GameObject LightMap;
+
+	private readonly System.Random _random = new System.Random();
+	private Tile _tree_topleft;
+	private Tile _tree_topright;
+	private Tile _tree_bottomleft;
+	private Tile _tree_bottomright;
+	private Tile _groundTile;
+	private Tile _stump;
+	private Tile _log;
+	private Tile _logv;
+	private Tile _bush;
 
 	public int SizeX { get; private set; }
 	public int SizeY { get; private set; }
@@ -19,13 +31,22 @@ public class TerrainGenerator : MonoBehaviour
 	// Start is called before the first frame update
 	void Awake()
 	{
+		_groundTile = Resources.Load<Tile>("tiles/floor");
+		_stump = Resources.Load<Tile>("tiles/stump");
+		_log = Resources.Load<Tile>("tiles/log");
+		_logv = Resources.Load<Tile>("tiles/logv");
+		_bush = Resources.Load<Tile>("tiles/bush");
+		_tree_topleft = Resources.Load<Tile>("tiles/treetopleft");
+		_tree_topright = Resources.Load<Tile>("tiles/treetopright");
+		_tree_bottomleft = Resources.Load<Tile>("tiles/treebottomleft");
+		_tree_bottomright = Resources.Load<Tile>("tiles/treebottomright");
+
 		var bitmapReader = new BitmapReader();
-		var levelMap = bitmapReader.Read();
+		var levelMap = bitmapReader.Read("Levels/test");
 
 		if (levelMap == null || levelMap.GetLength(0) == 0 || levelMap.GetLength(1) == 0)
 		{
-			GenerateRandomMap(64, 32);
-			return;
+			throw new InvalidOperationException("Missing valid map");
 		}
 
 		SizeY = levelMap.GetLength(0);
@@ -37,22 +58,23 @@ public class TerrainGenerator : MonoBehaviour
 			{
 				var tile = levelMap[y + (SizeY / 2), x + (SizeX / 2)];
 				if (y == GetLowerBound(SizeY))
-					Obstacles.SetTile(new Vector3Int(x, y - 1, -1), ObstacleTile);
+					Obstacles.SetTile(new Vector3Int(x, y - 1, -1), _stump);
 
 				if (y == GetUpperBound(SizeY) - 1)
-					Obstacles.SetTile(new Vector3Int(x, y + 1, -1), ObstacleTile);
+					Obstacles.SetTile(new Vector3Int(x, y + 1, -1), _stump);
 
 				if (x == GetUpperBound(SizeX) - 1)
-					Obstacles.SetTile(new Vector3Int(x + 1, y, -1), ObstacleTile);
+					Obstacles.SetTile(new Vector3Int(x + 1, y, -1), _stump);
 
 				if (x == GetLowerBound(SizeX))
-					Obstacles.SetTile(new Vector3Int(x - 1, y, -1), ObstacleTile);
+					Obstacles.SetTile(new Vector3Int(x - 1, y, -1), _stump);
 
-				if (tile == TileType.Ground)
-					Floor.SetTile(new Vector3Int(x, y, 0), GroundTile);
-				
-				if (tile == TileType.Obstacle)
-					Obstacles.SetTile(new Vector3Int(x, y, -1), ObstacleTile);
+				Floor.SetTile(new Vector3Int(x, y, 0), _groundTile);
+
+				if (tile != TileType.Ground)
+					Obstacles.SetTile(
+						new Vector3Int(x, y, -1),
+						GetTile(tile, x, y));
 			}
 		}
 
@@ -66,24 +88,85 @@ public class TerrainGenerator : MonoBehaviour
 		lightMapController.SetLightmapData(SizeX, SizeY, GenerateLightMap(levelMap));
 	}
 
-	private void GenerateRandomMap(int height, int width)
+	private TileBase GetTile(
+		TileType tile,
+		int x,
+		int y)
 	{
-		var random = new System.Random();
-		for (int y = GetLowerBound(height); y < GetUpperBound(height); y++)
+		if (tile == TileType.Stump)
+			return _stump;
+		if (tile == TileType.Bush)
+			return _bush;
+
+		if (tile == TileType.Tree)
 		{
-			for (int x = GetLowerBound(width); x < GetUpperBound(width); x++)
+			if (!_treeLookAhead.ContainsKey((x, y)))
 			{
-				if (y == GetLowerBound(height)
-					|| y == GetUpperBound(height) - 1
-					|| x == GetUpperBound(width) - 1
-					|| x == GetLowerBound(width))
-					Obstacles.SetTile(new Vector3Int(x, y, -1), ObstacleTile);
-				Floor.SetTile(new Vector3Int(x, y, 0), GroundTile);
-				if (random.Next(1, 10) > 8)
-					Obstacles.SetTile(new Vector3Int(x, y, -1), ObstacleTile);
+				_treeLookAhead.Add((x, y), _tree_bottomleft);
+				if (BoundsCheck(x, y + 1))
+					_treeLookAhead.Add((x, y + 1), _tree_topleft);
+				if (BoundsCheck(x + 1, y))
+					_treeLookAhead.Add((x + 1, y), _tree_bottomright);
+				if (BoundsCheck(x + 1, y + 1))
+					_treeLookAhead.Add((x + 1, y + 1), _tree_topright);
 			}
+			if (_treeLookAhead.ContainsKey((x, y)))
+				return _treeLookAhead[(x, y)];
 		}
+
+		if (tile == TileType.Log)
+		{
+			if (!_logLookAhead.ContainsKey((x, y)))
+			{
+				_logLookAhead.Add((x, y), null);
+				if (BoundsCheck(x, y + 1))
+					_logLookAhead.Add((x, y + 1), _logv);
+				if (BoundsCheck(x + 1, y))
+					_logLookAhead.Add((x + 1, y), _log);
+				if (BoundsCheck(x + 2, y ))
+					_logLookAhead.Add((x + 2, y), null);
+				if (BoundsCheck(x, y + 2 ))
+					_logLookAhead.Add((x, y + 2), null);
+			}
+			if (_logLookAhead.ContainsKey((x, y)))
+				return _logLookAhead[(x, y)];
+		}
+
+		return null;
 	}
+
+	private bool BoundsCheck(
+		int x,
+		int y)
+	{
+		if (x < GetLowerBound(SizeX) || x > GetUpperBound(SizeX))
+			return false;
+		if (y < GetLowerBound(SizeY) || y > GetUpperBound(SizeY))
+			return false;
+		return true;
+	}
+
+	private IDictionary<(int X, int Y), Tile> _treeLookAhead = new Dictionary<(int X, int Y), Tile>();
+	private IDictionary<(int X, int Y), Tile> _logLookAhead = new Dictionary<(int X, int Y), Tile>();
+
+	//private void GenerateRandomMap(int height, int width)
+	//{
+	//	var random = new System.Random();
+	//	for (int y = GetLowerBound(height); y < GetUpperBound(height); y++)
+	//	{
+	//		for (int x = GetLowerBound(width); x < GetUpperBound(width); x++)
+	//		{
+	//			if (y == GetLowerBound(height)
+	//				|| y == GetUpperBound(height) - 1
+	//				|| x == GetUpperBound(width) - 1
+	//				|| x == GetLowerBound(width))
+	//				Obstacles.SetTile(new Vector3Int(x, y, -1), GetRandomObstacle());
+	//			Floor.SetTile(new Vector3Int(x, y, 0), GroundTile);
+	//			if (random.Next(1, 10) > 8)
+	//				Obstacles.SetTile(new Vector3Int(x, y, -1), GetRandomObstacle());
+	//		}
+	//	}
+	//}
 
 	private int GetLowerBound(int value)
 	{
@@ -116,7 +199,10 @@ public class TerrainGenerator : MonoBehaviour
 		{
 			for (int x = 0; x < width; ++x)
 			{
-				if (cellVisited[y, x]) { continue; }
+				if (cellVisited[y, x])
+				{
+					continue;
+				}
 
 				var rectangle = GetRectangleFromCell(ref tileMap, ref cellVisited, x, y);
 				if (rectangle == null)
@@ -138,10 +224,14 @@ public class TerrainGenerator : MonoBehaviour
 		return lineSegmentCollection.ToArray();
 	}
 
-	private Rect? GetRectangleFromCell(ref TileType[,] tileMap, ref bool[,] cellVisited, int cellX, int cellY)
+	private Rect? GetRectangleFromCell(
+		ref TileType[,] tileMap,
+		ref bool[,] cellVisited,
+		int cellX,
+		int cellY)
 	{
 		var type = tileMap[cellY, cellX];
-		if (type != TileType.Obstacle && type != TileType.Wall)
+		if (type == TileType.Ground)
 			return null;
 
 		int widthOfTileMap = tileMap.GetLength(1);
@@ -181,7 +271,10 @@ public class TerrainGenerator : MonoBehaviour
 					bool rightCellNotVisited = (rightEdge < widthOfTileMap - 1) && (!cellVisited[y, rightEdge + 1]);
 					bool rightAdjacentIsSame = (rightEdge >= widthOfTileMap - 1) || ((rightCellIsSameType) && (rightCellNotVisited));
 
-					if ((leftAdjacentIsSame) && (rightAdjacentIsSame)) { keepGoing = false; }
+					if ((leftAdjacentIsSame) && (rightAdjacentIsSame))
+					{
+						keepGoing = false;
+					}
 				}
 				catch
 				{
@@ -191,7 +284,7 @@ public class TerrainGenerator : MonoBehaviour
 
 			// Mark all cells on new row as visited
 			if (!keepGoing) continue;
-			
+
 			++height;
 			for (int x = cellX; x < (cellX + width); ++x)
 				cellVisited[y, x] = true;

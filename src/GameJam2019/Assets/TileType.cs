@@ -1,6 +1,8 @@
 ﻿public enum TileType
 {
 	Ground,
-	Wall,
-	Obstacle
+	Stump,
+	Tree,
+	Log,
+	Bush
 }

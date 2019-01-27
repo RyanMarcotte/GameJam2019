@@ -345,8 +345,7 @@ public class TerrainGenerator : MonoBehaviour
 			new Vector2(r.xMax - halfWidth, r.yMin - halfHeight) // rectBottomRightCorner
 		}).Distinct(new Vector2EqualityComparer()).Select((item, index) => new Node(item.x, item.y, index)).ToList();
 
-		Hull.Hull.setConvexHull(points);
-		Hull.Hull.setConcaveHull(0m, 1000, false);
+		Hull.Hull.setConcaveHull(points, -0.1m, 100, true);
 		foreach (var line in Hull.Hull.hull_concave_edges)
 		{
 			Vector2 left = new Vector2((float)line.nodes[0].x, (float)line.nodes[0].y);
@@ -401,7 +400,7 @@ namespace Hull
 			return exitLines;
 		}
 
-		public static void setConvexHull(List<Node> nodes)
+		public static void setConcaveHull(List<Node> nodes, decimal concavity, int scaleFactor, bool isSquareGrid)
 		{
 			unused_nodes.AddRange(nodes);
 			hull_edges.AddRange(getHull(nodes));
@@ -410,10 +409,7 @@ namespace Hull
 				foreach (Node node in line.nodes)
 					unused_nodes.RemoveAll(a => a.id == node.id);
 			}
-		}
 
-		public static void setConcaveHull(decimal concavity, int scaleFactor, bool isSquareGrid)
-		{
 			/* Run setConvexHull before! 
              * Concavity is a value used to restrict the concave angles 
              * it can go from -1 to 1 (it wont crash if you go further)

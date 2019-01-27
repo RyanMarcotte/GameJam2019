@@ -18,6 +18,7 @@ public class TerrainGenerator : MonoBehaviour
 
 	public GameObject ShakeSprite;
 	public GameObject NoiseSprite;
+	public GameObject House;
 
 	private readonly System.Random _random = new System.Random();
 	private Tile _tree_topleft;
@@ -30,6 +31,13 @@ public class TerrainGenerator : MonoBehaviour
 	private Tile _logv;
 	private Tile _bush;
 	private Tile _rock;
+	private Tile _houseTopLeft;
+	private Tile _houseTopMiddle;
+	private Tile _houseTopRight;
+	private Tile _houseMiddleLeft;
+	private Tile _houseMiddleMiddle;
+	private Tile _houseMiddleRight;
+	private Tile _houseDoor;
 
 	public int SizeX { get; private set; }
 	public int SizeY { get; private set; }
@@ -48,6 +56,13 @@ public class TerrainGenerator : MonoBehaviour
 		_tree_topright = Resources.Load<Tile>("tiles/treetopright");
 		_tree_bottomleft = Resources.Load<Tile>("tiles/treebottomleft");
 		_tree_bottomright = Resources.Load<Tile>("tiles/treebottomright");
+		_houseTopLeft = Resources.Load<Tile>("tiles/house_0");
+		_houseTopMiddle = Resources.Load<Tile>("tiles/house_1");
+		_houseTopRight = Resources.Load<Tile>("tiles/house_2");
+		_houseMiddleLeft = Resources.Load<Tile>("tiles/house_3");
+		_houseMiddleMiddle = Resources.Load<Tile>("tiles/house_4");
+		_houseMiddleRight = Resources.Load<Tile>("tiles/house_5");
+		_houseDoor = Resources.Load<Tile>("tiles/house_6");
 
 		var bitmapReader = new BitmapReader();
 		var levelMap = bitmapReader.Read("Levels/map01");
@@ -81,18 +96,21 @@ public class TerrainGenerator : MonoBehaviour
 
 				if (tile == TileType.NoiseSprite)
 				{
-					PlaceSprite(x, y, NoiseSprite);
+					PlaceSprite(x, y, NoiseSprite, true);
 				}
 
 				if (tile == TileType.ShakeSprite)
 				{
-					PlaceSprite(x, y, ShakeSprite);
+					PlaceSprite(x, y, ShakeSprite, true);
 				}
 
 				if (tile != TileType.Ground)
 					Obstacles.SetTile(
 						new Vector3Int(x, y, -1),
 						GetTile(tile, x, y));
+
+				if (Obstacles.GetTile(new Vector3Int(x, y, -1)) == _houseDoor)
+					PlaceSprite(x, y, House, false);
 			}
 		}
 
@@ -106,11 +124,15 @@ public class TerrainGenerator : MonoBehaviour
 		lightMapController.SetLightmapData(SizeX, SizeY, GenerateLightMap(levelMap));
 	}
 
-	private void PlaceSprite(int x, int y, GameObject gObject)
+	private void PlaceSprite(
+		int x,
+		int y,
+		GameObject gObject,
+		bool active)
 	{
 		var sprite = Instantiate(gObject);
 		sprite.transform.position = new Vector3(x, y, 0);
-		sprite.SetActive(true);
+		sprite.SetActive(active);
 	}
 
 	private TileBase GetTile(
@@ -140,6 +162,33 @@ public class TerrainGenerator : MonoBehaviour
 
 			if (_treeLookAhead.ContainsKey((x, y)))
 				return _treeLookAhead[(x, y)];
+		}
+
+		if (tile == TileType.House)
+		{
+			if (!_houseLookAhead.ContainsKey((x, y)))
+			{
+				_houseLookAhead.Add((x, y), null);
+				if (BoundsCheck(x, y + 1))
+					_houseLookAhead.Add((x, y + 1), _houseMiddleLeft);
+				if (BoundsCheck(x, y + 2))
+					_houseLookAhead.Add((x, y + 2), _houseTopLeft);
+				if (BoundsCheck(x + 1, y))
+					_houseLookAhead.Add((x + 1, y), _houseDoor);	
+				if (BoundsCheck(x + 2, y))
+					_houseLookAhead.Add((x + 2, y), null);
+				if (BoundsCheck(x + 1, y + 1))
+					_houseLookAhead.Add((x + 1, y + 1), _houseMiddleMiddle);
+				if (BoundsCheck(x + 1, y + 2))
+					_houseLookAhead.Add((x + 1, y + 2), _houseTopMiddle);
+				if (BoundsCheck(x + 2, y + 2))
+					_houseLookAhead.Add((x + 2, y + 2), _houseTopRight);
+				if (BoundsCheck(x + 2, y + 1))
+					_houseLookAhead.Add((x + 2, y + 1), _houseMiddleRight);
+			}
+
+			if (_houseLookAhead.ContainsKey((x, y)))
+				return _houseLookAhead[(x, y)];
 		}
 
 		if (tile == TileType.Log)
@@ -177,6 +226,7 @@ public class TerrainGenerator : MonoBehaviour
 
 	private IDictionary<(int X, int Y), Tile> _treeLookAhead = new Dictionary<(int X, int Y), Tile>();
 	private IDictionary<(int X, int Y), Tile> _logLookAhead = new Dictionary<(int X, int Y), Tile>();
+	private IDictionary<(int X, int Y), Tile> _houseLookAhead = new Dictionary<(int X, int Y), Tile>();
 
 	//private void GenerateRandomMap(int height, int width)
 	//{

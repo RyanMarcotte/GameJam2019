@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class BitmapReader
 {
@@ -33,6 +34,11 @@ public class BitmapReader
 		if (pixelColour == new Color(1.0f, 1.0f, 0.0f))
 			return TileType.Rock;
 
+		if (new Color(
+				(float)Math.Round(pixelColour.r, 1, MidpointRounding.ToEven),
+				(float)Math.Round(pixelColour.b, 1, MidpointRounding.ToEven),
+				(float)Math.Round(pixelColour.g, 1, MidpointRounding.ToEven)) == Color.grey)
+			return TileType.House;
 		return TileType.Ground;
 	}
 }

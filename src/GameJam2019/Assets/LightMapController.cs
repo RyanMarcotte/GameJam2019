@@ -14,19 +14,56 @@ public class LightMapController : MonoBehaviour
 	private QuadTree<LineSegmentAndAssociatedRenderer> _quadTree;
 	private LineSegment[] _lineSegmentCollection = {};
 
-	// Update is called once per frame
-	void Update()
+	private Bounds GetPlayerCameraBounds()
 	{
 		var position = Player.transform.position;
-		foreach (var item in _quadTree.Items)
-			item.LineRenderer.enabled = false;
 
 		var camera = Camera.main.GetComponent<Camera>();
 		float screenAspect = (float)Screen.width / (float)Screen.height;
 		float cameraHeight = camera.orthographicSize * 2;
 		var boundsSize = new Vector2(cameraHeight * screenAspect, cameraHeight);
-		var bounds = new Bounds(new Vector2(position.x, position.y), boundsSize / 4);
-		foreach (var item in _quadTree.Query(bounds))
+		return new Bounds(new Vector2(position.x, position.y), boundsSize / 4);
+	}
+
+	void Start()
+	{
+		var bounds = GetPlayerCameraBounds();
+		var lineRenderer = Player.AddComponent<LineRenderer>();
+		lineRenderer.positionCount = 8;
+		lineRenderer.SetPosition(0, new Vector3(bounds.center.x, bounds.center.y, 10f));
+		lineRenderer.SetPosition(1, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y - bounds.extents.y, 10f));
+		lineRenderer.SetPosition(2, new Vector3(bounds.center.x, bounds.center.y, 10f));
+		lineRenderer.SetPosition(3, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y - bounds.extents.y, 10f));
+		lineRenderer.SetPosition(4, new Vector3(bounds.center.x, bounds.center.y, 10f));
+		lineRenderer.SetPosition(5, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));
+		lineRenderer.SetPosition(6, new Vector3(bounds.center.x, bounds.center.y, 10f));
+		lineRenderer.SetPosition(7, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));
+		lineRenderer.widthMultiplier = 0.1f;
+		lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+		lineRenderer.startColor = Color.red;
+		lineRenderer.endColor = Color.red;
+		lineRenderer.sortingOrder = 105;
+	}
+
+	// Update is called once per frame
+	void Update()
+	{
+		foreach (var item in _quadTree.Items)
+			item.LineRenderer.enabled = false;
+
+		var bounds = GetPlayerCameraBounds();
+		var lineRenderer = Player.GetComponent<LineRenderer>();
+		lineRenderer.SetPosition(0, new Vector3(bounds.center.x, bounds.center.y, 10f));
+		lineRenderer.SetPosition(1, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y - bounds.extents.y, 10f));
+		lineRenderer.SetPosition(2, new Vector3(bounds.center.x, bounds.center.y, 10f));
+		lineRenderer.SetPosition(3, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y - bounds.extents.y, 10f));
+		lineRenderer.SetPosition(4, new Vector3(bounds.center.x, bounds.center.y, 10f));
+		lineRenderer.SetPosition(5, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));
+		lineRenderer.SetPosition(6, new Vector3(bounds.center.x, bounds.center.y, 10f));
+		lineRenderer.SetPosition(7, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));
+
+		var items = _quadTree.Query(bounds);
+		foreach (var item in items)
 			item.LineRenderer.enabled = true;
 	}
 
@@ -76,13 +113,13 @@ public class LineSegment : Tuple<Vector2, Vector2>, IHasAABB
 	public LineSegment(Vector2 start, Vector2 end)
 		: base(start, end)
 	{
-		var height = Math.Abs(end.y - start.y);
-		if (height < 1)
-			height = 0.1f;
-
 		var width = Math.Abs(end.x - start.x);
 		if (width < 1)
 			width = 0.1f;
+
+		var height = Math.Abs(end.y - start.y);
+		if (height < 1)
+			height = 0.1f;
 
 		var centerX = (start.x + end.x) / 2;
 		var centerY = (start.y + end.y) / 2;
@@ -119,7 +156,7 @@ public class QuadTree<T>
 	public QuadTree(float x, float y, float width, float height, int minimumArea = 100)
 	{
 		_minimumArea = minimumArea;
-		_bounds = new Bounds(new Vector3(x, y), new Vector3(width, height));
+		_bounds = new Bounds(new Vector3(x, y), new Vector3(width, height, 2));
 		_root = new QuadTreeNode(_bounds, minimumArea);
 		_allItems = new List<T>();
 	}
@@ -188,26 +225,11 @@ public class QuadTree<T>
 		return _root.Query(area);
 	}
 
-	/// <summary>
-	/// Removes all items from the quadtree.
-	/// </summary>
-	public void Clear()
-	{
-		_root.Clear();
-	}
-
 	private class QuadTreeNode
 	{
-		#region PRIVATE MEMBERS
-
 		private readonly int _minimumArea;
-		private readonly Bounds _bounds;
 		private readonly List<T> _contents;
 		private readonly List<QuadTreeNode> _nodes;
-
-		#endregion
-
-		#region INITIALIZATION
 
 		/// <summary>
 		/// 
@@ -217,24 +239,20 @@ public class QuadTree<T>
 		public QuadTreeNode(Bounds bounds, int minimumArea)
 		{
 			_minimumArea = minimumArea;
-			_bounds = bounds;
+			Bounds = bounds;
 			_contents = new List<T>();
 			_nodes = new List<QuadTreeNode>(4);
 		}
 
-		#endregion
-
-		#region PROPERTIES
-
 		/// <summary>
 		/// Indicates if the node is empty.
 		/// </summary>
-		public bool IsEmpty => (Math.Abs(_bounds.size.x) < 0.01f && Math.Abs(_bounds.size.y) < 0.01f) || !_nodes.Any();
+		public bool IsEmpty => (Math.Abs(Bounds.size.x) < 0.01f && Math.Abs(Bounds.size.y) < 0.01f) || !_nodes.Any();
 
 		/// <summary>
 		/// Gets the AABB of the quadtree node.
 		/// </summary>
-		public Bounds Bounds => _bounds;
+		public Bounds Bounds { get; }
 
 		/// <summary>
 		/// Gets the number of items in this node and all subnodes.
@@ -270,31 +288,21 @@ public class QuadTree<T>
 		/// </summary>
 		public IEnumerable<T> OwnContents => _contents;
 
-		#endregion
-
-		#region PRIVATE METHODS
-
 		/// <summary>
 		/// Create the subnodes (partition space), provided that it is larger than the minimum-allowed size.
 		/// </summary>
 		private void CreateSubNodes()
 		{
 			// The smallest subnode has an area
-			if (_bounds.size.y * _bounds.size.x <= _minimumArea)
+			if (Bounds.size.y * Bounds.size.x <= _minimumArea)
 				return;
 
-			float halfWidth = (_bounds.size.x / 2f);
-			float halfHeight = (_bounds.size.y / 2f);
-
-			_nodes.Add(new QuadTreeNode(new Bounds(new Vector2(_bounds.min.x + halfWidth / 2, _bounds.min.y + halfWidth / 2), new Vector2(halfWidth, halfHeight)), _minimumArea));
-			_nodes.Add(new QuadTreeNode(new Bounds(new Vector2(_bounds.min.x + halfWidth / 2, _bounds.min.y + halfHeight + halfWidth / 2), new Vector2(halfWidth, halfHeight)), _minimumArea));
-			_nodes.Add(new QuadTreeNode(new Bounds(new Vector2(_bounds.min.x + halfWidth + halfWidth / 2, _bounds.min.y + halfWidth / 2), new Vector2(halfWidth, halfHeight)), _minimumArea));
-			_nodes.Add(new QuadTreeNode(new Bounds(new Vector2(_bounds.min.x + halfWidth + halfWidth / 2, _bounds.min.y + halfHeight + halfWidth / 2), new Vector2(halfWidth, halfHeight)), _minimumArea));
+			var nodeSize = new Vector2(Bounds.extents.x, Bounds.extents.y);
+			_nodes.Add(new QuadTreeNode(new Bounds(Bounds.center - Bounds.extents / 2, nodeSize), _minimumArea));
+			_nodes.Add(new QuadTreeNode(new Bounds(Bounds.center + new Vector3(Bounds.extents.x / 2, - Bounds.extents.y / 2), nodeSize), _minimumArea));
+			_nodes.Add(new QuadTreeNode(new Bounds(Bounds.center + new Vector3(-Bounds.extents.x / 2, Bounds.extents.y / 2), nodeSize), _minimumArea));
+			_nodes.Add(new QuadTreeNode(new Bounds(Bounds.center + Bounds.extents / 2, nodeSize), _minimumArea));
 		}
-
-		#endregion
-
-		#region PUBLIC METHODS
 
 		/// <summary>
 		/// Insert an item into this node.
@@ -302,7 +310,7 @@ public class QuadTree<T>
 		/// <param name="item">The item to insert.</param>
 		public void Insert(T item)
 		{
-			if (!_bounds.Contains(item.AABB))
+			if (!Bounds.Contains(item.AABB))
 				return;
 
 			// Partition this node (if the size of this node is below the minimum-allowed size, this node is not partitioned)
@@ -369,30 +377,6 @@ public class QuadTree<T>
 
 			return results;
 		}
-
-		/// <summary>
-		/// Perform the specified action for each item in the quadtree.
-		/// </summary>
-		/// <param name="action">Action to perform.</param>
-		public void ForEach(Action<QuadTreeNode> action)
-		{
-			action(this);
-
-			foreach (var node in _nodes)
-				node.ForEach(action);
-		}
-
-		/// <summary>
-		/// Remove all contents from the node.
-		/// </summary>
-		internal void Clear()
-		{
-			_contents.Clear();
-			foreach (var node in _nodes)
-				node.Clear();
-		}
-
-		#endregion
 	}
 }
 

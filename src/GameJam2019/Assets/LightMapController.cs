@@ -113,22 +113,22 @@ public class LightMapController : MonoBehaviour
 		float t1 = MAXIMUM_LIGHT_CAST;
 		foreach (var lineSegment in lineSegments)
 		{
-			var t1a = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.up * 0.1f, (lineSegment.End - lineSegment.Start));
+			const float MULTIPLIER = 0.05f;
+			var t1a = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.up * MULTIPLIER, (lineSegment.End - lineSegment.Start));
 			if (t1a < t1)
 				t1 = t1a;
 
-			var t1b = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.right * 0.1f, (lineSegment.End - lineSegment.Start));
+			var t1b = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.right * MULTIPLIER, (lineSegment.End - lineSegment.Start));
 			if (t1b < t1)
 				t1 = t1b;
 
-			var t1c = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.down * 0.1f, (lineSegment.End - lineSegment.Start));
+			var t1c = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.down * MULTIPLIER, (lineSegment.End - lineSegment.Start));
 			if (t1c < t1)
 				t1 = t1c;
 
-			var t1d = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.left * 0.1f, (lineSegment.End - lineSegment.Start));
+			var t1d = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.left * MULTIPLIER, (lineSegment.End - lineSegment.Start));
 			if (t1d < t1)
 				t1 = t1d;
-
 		}
 
 		return rayDirection * t1;

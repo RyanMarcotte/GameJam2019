@@ -19,6 +19,7 @@ GameObject:
   - component: {fileID: 4833565654475678520}
   - component: {fileID: 8725230314639781894}
   - component: {fileID: 641283556265944271}
+  - component: {fileID: 255731007526402620}
   m_Layer: 8
   m_Name: Player
   m_TagString: Untagged
@@ -76,7 +77,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 5
   m_Sprite: {fileID: 21300008, guid: 1476516c24aee194c98e48d574eae6ad, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -310,3 +311,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   walkSound: {fileID: 8300000, guid: ac4a21667f146f2499f8796d347af421, type: 3}
+--- !u!81 &255731007526402620
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4591073336470290235}
+  m_Enabled: 1

@@ -70,7 +70,7 @@ public class LightMapController : MonoBehaviour
 		// TODO: calculate the intersections of the lines and wall edges
 		var lineRenderer = Player.GetComponent<LineRenderer>();
 		var playerBounds = GetPlayerBounds();
-		var origin = new Vector3(playerBounds.center.x, playerBounds.center.y, 0f);
+		var origin = new Vector2(playerBounds.center.x, playerBounds.center.y);
 		/*lineRenderer.SetPosition(0, origin);
 		lineRenderer.SetPosition(1, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y - bounds.extents.y, 10f));
 		lineRenderer.SetPosition(2, origin);
@@ -81,31 +81,31 @@ public class LightMapController : MonoBehaviour
 		lineRenderer.SetPosition(7, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));*/
 
 		var lineSegmentsToTest = linesToTest.Select(x => x.LineSegment).ToArray();
-		var direction1 = (new Vector3(playerBounds.center.x - playerBounds.extents.x, playerBounds.center.y - playerBounds.extents.y) - origin).ToNormalizedVector3();
-		var direction2 = (new Vector3(playerBounds.center.x + playerBounds.extents.x, playerBounds.center.y - playerBounds.extents.y) - origin).ToNormalizedVector3();
-		var direction3 = (new Vector3(playerBounds.center.x - playerBounds.extents.x, playerBounds.center.y + playerBounds.extents.y) - origin).ToNormalizedVector3();
-		var direction4 = (new Vector3(playerBounds.center.x + playerBounds.extents.x, playerBounds.center.y + playerBounds.extents.y) - origin).ToNormalizedVector3();
+		var direction1 = (new Vector2(playerBounds.center.x - playerBounds.extents.x, playerBounds.center.y - playerBounds.extents.y) - origin).normalized;
+		var direction2 = (new Vector2(playerBounds.center.x + playerBounds.extents.x, playerBounds.center.y - playerBounds.extents.y) - origin).normalized;
+		var direction3 = (new Vector2(playerBounds.center.x - playerBounds.extents.x, playerBounds.center.y + playerBounds.extents.y) - origin).normalized;
+		var direction4 = (new Vector2(playerBounds.center.x + playerBounds.extents.x, playerBounds.center.y + playerBounds.extents.y) - origin).normalized;
 
 		lineRenderer.SetPosition(0, origin);
-		lineRenderer.SetPosition(1, origin + GetDirectionalLightVector3(origin, direction1, lineSegmentsToTest));
+		lineRenderer.SetPosition(1, origin + GetDirectionalLightVector2(origin, direction1, lineSegmentsToTest));
 
 		lineRenderer.SetPosition(2, origin);
-		lineRenderer.SetPosition(3, origin + GetDirectionalLightVector3(origin, direction2, lineSegmentsToTest));
+		lineRenderer.SetPosition(3, origin + GetDirectionalLightVector2(origin, direction2, lineSegmentsToTest));
 
 		lineRenderer.SetPosition(4, origin);
-		lineRenderer.SetPosition(5, origin + GetDirectionalLightVector3(origin, direction3, lineSegmentsToTest));
+		lineRenderer.SetPosition(5, origin + GetDirectionalLightVector2(origin, direction3, lineSegmentsToTest));
 
 		lineRenderer.SetPosition(6, origin);
-		lineRenderer.SetPosition(7, origin + GetDirectionalLightVector3(origin, direction4, lineSegmentsToTest));
+		lineRenderer.SetPosition(7, origin + GetDirectionalLightVector2(origin, direction4, lineSegmentsToTest));
 	}
 
 	private const float MAXIMUM_LIGHT_CAST = 7.5f;
-	private static Vector3 GetDirectionalLightVector3(Vector3 rayOrigin, Vector3 rayDirection, IEnumerable<LineSegment> lineSegments)
+	private static Vector2 GetDirectionalLightVector2(Vector2 rayOrigin, Vector2 rayDirection, IEnumerable<LineSegment> lineSegments)
 	{
 		float t1 = MAXIMUM_LIGHT_CAST;
 		foreach (var lineSegment in lineSegments)
 		{
-			var t1a = GetT1(rayOrigin, rayDirection, lineSegment.Start, (lineSegment.End - lineSegment.Start).ToNormalizedVector2());
+			var t1a = GetT1(rayOrigin, rayDirection, lineSegment.Start, (lineSegment.End - lineSegment.Start).normalized);
 			if (t1a < t1)
 				t1 = t1a;
 		}
@@ -113,7 +113,7 @@ public class LightMapController : MonoBehaviour
 		return rayDirection * t1;
 	}
 
-	private static float GetT1(Vector3 rayOrigin, Vector3 rayDirection, Vector2 lineSegmentOrigin, Vector2 lineSegmentDirection)
+	private static float GetT1(Vector2 rayOrigin, Vector2 rayDirection, Vector2 lineSegmentOrigin, Vector2 lineSegmentDirection)
 	{
 		/*
 			*Ray X = r_px+r_dx*T1
@@ -126,7 +126,10 @@ public class LightMapController : MonoBehaviour
 		//T1 = (s_px + s_dx * T2 - r_px) / r_dx
 		float t2 = (rayDirection.x * (lineSegmentOrigin.y - rayOrigin.y) + rayDirection.y * (rayOrigin.x - lineSegmentOrigin.x)) / (lineSegmentDirection.x * rayDirection.y - lineSegmentDirection.y * rayDirection.x);
 		float t1 = (lineSegmentOrigin.x + lineSegmentDirection.x * t2 - rayOrigin.x) / rayDirection.x;
-		return ((t1 > 0f) && (0f < t2) && (t2 < 1f)) ? t1 : MAXIMUM_LIGHT_CAST;
+		if ((t1 > 0f) && (0f < t2) && (t2 < 1f))
+			return t1;
+		
+		return MAXIMUM_LIGHT_CAST;
 	}
 
 	public void SetLightmapData(int mapWidth, int mapHeight, IEnumerable<LineSegment> lineSegmentCollection)

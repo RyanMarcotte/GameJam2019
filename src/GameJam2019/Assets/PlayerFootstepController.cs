@@ -20,7 +20,7 @@ public class PlayerFootstepController : MonoBehaviour
 
     void PlaySound()
     {
-        if (Input.GetButton("Vertical") || Input.GetButton("Horizontal"))
+        if (GetComponent<Rigidbody2D>().velocity.magnitude > 0)
         {
             GetComponent<AudioSource>().PlayOneShot(walkSound);
         }

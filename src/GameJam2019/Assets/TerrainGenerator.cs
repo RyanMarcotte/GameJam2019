@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -51,11 +50,14 @@ public class TerrainGenerator : MonoBehaviour
 			}
 		}
 
+		if (LightMap == null)
+			return;
+		
 		var lightMapController = LightMap.GetComponent<LightMapController>();
 		if (lightMapController == null)
 			throw new InvalidOperationException("Could not retrieve LightMapController component!!");
 
-		lightMapController.SetLightmapData(GenerateLightMap(levelMap));
+		lightMapController.SetLightmapData(SizeX, SizeY, GenerateLightMap(levelMap));
 	}
 
 	private void GenerateRandomMap(int height, int width)
@@ -110,7 +112,6 @@ public class TerrainGenerator : MonoBehaviour
 			{
 				if (cellVisited[y, x]) { continue; }
 
-				var type = tileMap[y, x];
 				var rectangle = GetRectangleFromCell(ref tileMap, ref cellVisited, x, y);
 				if (rectangle == null)
 					continue;

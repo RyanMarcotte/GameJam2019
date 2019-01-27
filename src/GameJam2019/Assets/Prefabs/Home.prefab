@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 7823918124605869760}
   m_Layer: 0
   m_Name: Home
-  m_TagString: Untagged
+  m_TagString: home
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

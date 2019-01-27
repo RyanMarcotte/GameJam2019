@@ -110,7 +110,7 @@ public class TerrainGenerator : MonoBehaviour
 						GetTile(tile, x, y));
 
 				if (Obstacles.GetTile(new Vector3Int(x, y, -1)) == _houseDoor)
-					PlaceSprite(x, y, House, false);
+					House.transform.position = new Vector3Int(x, y, -1);
 			}
 		}
 

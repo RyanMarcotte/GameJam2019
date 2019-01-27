@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PlayerInventoryController : MonoBehaviour
 {
 	private readonly Dictionary<string, int> _itemCountLookup = new Dictionary<string, int>();
+
+	public GameObject Home;
 
     // Start is called before the first frame update
     void Start()
@@ -35,5 +38,8 @@ public class PlayerInventoryController : MonoBehaviour
 			_itemCountLookup.Add(id, 0);
 
 		_itemCountLookup[id] += count;
+
+		if (_itemCountLookup.Values.Sum() >= 3)
+			Home.SetActive(true);
 	}
 }

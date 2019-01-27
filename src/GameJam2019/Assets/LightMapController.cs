@@ -14,20 +14,21 @@ public class LightMapController : MonoBehaviour
 	private QuadTree<LineSegmentAndAssociatedRenderer> _quadTree;
 	private LineSegment[] _lineSegmentCollection = {};
 
-	private Bounds GetPlayerCameraBounds()
+	private Bounds GetCameraBounds()
 	{
-		var position = Player.transform.position;
+		//var position = Player.transform.position;
 
 		var camera = Camera.main.GetComponent<Camera>();
 		float screenAspect = (float)Screen.width / (float)Screen.height;
 		float cameraHeight = camera.orthographicSize * 2;
 		var boundsSize = new Vector2(cameraHeight * screenAspect, cameraHeight);
-		return new Bounds(new Vector2(position.x, position.y), boundsSize / 4);
+		return new Bounds(new Vector2(camera.transform.position.x, camera.transform.position.y), boundsSize);
 	}
 
 	void Start()
 	{
-		var bounds = GetPlayerCameraBounds();
+		// DEBUGGING ONLY (for camera bounds)
+		/*var bounds = GetCameraBounds();
 		var lineRenderer = Player.AddComponent<LineRenderer>();
 		lineRenderer.positionCount = 8;
 		lineRenderer.SetPosition(0, new Vector3(bounds.center.x, bounds.center.y, 10f));
@@ -42,7 +43,7 @@ public class LightMapController : MonoBehaviour
 		lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
 		lineRenderer.startColor = Color.red;
 		lineRenderer.endColor = Color.red;
-		lineRenderer.sortingOrder = 105;
+		lineRenderer.sortingOrder = 105;*/
 	}
 
 	// Update is called once per frame
@@ -51,8 +52,8 @@ public class LightMapController : MonoBehaviour
 		foreach (var item in _quadTree.Items)
 			item.LineRenderer.enabled = false;
 
-		var bounds = GetPlayerCameraBounds();
-		var lineRenderer = Player.GetComponent<LineRenderer>();
+		var bounds = GetCameraBounds();
+		/*var lineRenderer = Player.GetComponent<LineRenderer>();
 		lineRenderer.SetPosition(0, new Vector3(bounds.center.x, bounds.center.y, 10f));
 		lineRenderer.SetPosition(1, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y - bounds.extents.y, 10f));
 		lineRenderer.SetPosition(2, new Vector3(bounds.center.x, bounds.center.y, 10f));
@@ -60,7 +61,7 @@ public class LightMapController : MonoBehaviour
 		lineRenderer.SetPosition(4, new Vector3(bounds.center.x, bounds.center.y, 10f));
 		lineRenderer.SetPosition(5, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));
 		lineRenderer.SetPosition(6, new Vector3(bounds.center.x, bounds.center.y, 10f));
-		lineRenderer.SetPosition(7, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));
+		lineRenderer.SetPosition(7, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));*/
 
 		var items = _quadTree.Query(bounds);
 		foreach (var item in items)
@@ -82,8 +83,8 @@ public class LightMapController : MonoBehaviour
 			var lineRenderer = myLine.GetComponent<LineRenderer>();
 			lineRenderer.SetPosition(0, new Vector3(lineSegment.Start.x, lineSegment.Start.y, 10f));
 			lineRenderer.SetPosition(1, new Vector3(lineSegment.End.x, lineSegment.End.y, 10f));
-			lineRenderer.startColor = Color.blue;
-			lineRenderer.endColor = Color.blue;
+			lineRenderer.startColor = Color.magenta;
+			lineRenderer.endColor = Color.magenta;
 
 			return new LineSegmentAndAssociatedRenderer(lineSegment, lineRenderer);
 		}).ToArray();

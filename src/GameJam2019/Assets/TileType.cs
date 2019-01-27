@@ -7,5 +7,6 @@
 	Bush,
 	NoiseSprite,
 	ShakeSprite,
-	Rock
+	Rock,
+	House
 }

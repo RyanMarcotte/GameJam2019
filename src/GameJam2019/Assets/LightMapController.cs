@@ -16,6 +16,15 @@ public class LightMapController : MonoBehaviour
 
 	private Bounds GetCameraBounds()
 	{
+		var camera = Camera.main.GetComponent<Camera>();
+		float screenAspect = (float)Screen.width / (float)Screen.height;
+		float cameraHeight = camera.orthographicSize * 2;
+		var boundsSize = new Vector2(cameraHeight * screenAspect, cameraHeight);
+		return new Bounds(new Vector2(camera.transform.position.x, camera.transform.position.y), boundsSize);
+	}
+
+	private Bounds GetPlayerBounds()
+	{
 		var position = Player.transform.position;
 
 		var camera = Camera.main.GetComponent<Camera>();
@@ -28,7 +37,7 @@ public class LightMapController : MonoBehaviour
 	void Start()
 	{
 		// DEBUGGING ONLY (for camera bounds)
-		var bounds = GetCameraBounds();
+		var bounds = GetPlayerBounds();
 		var lineRenderer = Player.AddComponent<LineRenderer>();
 		lineRenderer.positionCount = 8;
 		lineRenderer.SetPosition(0, new Vector3(bounds.center.x, bounds.center.y, 10f));
@@ -52,49 +61,72 @@ public class LightMapController : MonoBehaviour
 		foreach (var item in _quadTree.Items)
 			item.LineRenderer.enabled = false;
 
-		var bounds = GetCameraBounds();
-
-		var items = _quadTree.Query(bounds);
-		foreach (var item in items)
+		var cameraBounds = GetCameraBounds();
+		
+		var linesToTest = _quadTree.Query(cameraBounds).ToArray();
+		foreach (var item in linesToTest)
 			item.LineRenderer.enabled = true;
 
-		/*
-		*Ray X = r_px+r_dx*T1
-		Ray Y = r_py+r_dy*T1
-		Segment X = s_px+s_dx*T2
-		Segment Y = s_py+s_dy*T2
-		*/
-
-		//T2 = (r_dx*(s_py-r_py) + r_dy*(r_px-s_px))/(s_dx*r_dy - s_dy*r_dx)
-		//T1 = (s_px + s_dx * T2 - r_px) / r_dx
 		// TODO: calculate the intersections of the lines and wall edges
 		var lineRenderer = Player.GetComponent<LineRenderer>();
-		var origin = new Vector3(bounds.center.x, bounds.center.y, 0f);
-		lineRenderer.SetPosition(0, origin);
+		var playerBounds = GetPlayerBounds();
+		var origin = new Vector3(playerBounds.center.x, playerBounds.center.y, 0f);
+		/*lineRenderer.SetPosition(0, origin);
 		lineRenderer.SetPosition(1, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y - bounds.extents.y, 10f));
 		lineRenderer.SetPosition(2, origin);
 		lineRenderer.SetPosition(3, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y - bounds.extents.y, 10f));
 		lineRenderer.SetPosition(4, origin);
 		lineRenderer.SetPosition(5, new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));
 		lineRenderer.SetPosition(6, origin);
-		lineRenderer.SetPosition(7, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));
+		lineRenderer.SetPosition(7, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));*/
 
-		/*var direction1 = new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y - bounds.extents.y).ToNormalizedVector3() * 5;
-		var direction2 = new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y - bounds.extents.y).ToNormalizedVector3() * 5;
-		var direction3 = new Vector3(bounds.center.x - bounds.extents.x, bounds.center.y + bounds.extents.y).ToNormalizedVector3() * 5;
-		var direction4 = new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y).ToNormalizedVector3() * 5;
+		var lineSegmentsToTest = linesToTest.Select(x => x.LineSegment).ToArray();
+		var direction1 = (new Vector3(playerBounds.center.x - playerBounds.extents.x, playerBounds.center.y - playerBounds.extents.y) - origin).ToNormalizedVector3();
+		var direction2 = (new Vector3(playerBounds.center.x + playerBounds.extents.x, playerBounds.center.y - playerBounds.extents.y) - origin).ToNormalizedVector3();
+		var direction3 = (new Vector3(playerBounds.center.x - playerBounds.extents.x, playerBounds.center.y + playerBounds.extents.y) - origin).ToNormalizedVector3();
+		var direction4 = (new Vector3(playerBounds.center.x + playerBounds.extents.x, playerBounds.center.y + playerBounds.extents.y) - origin).ToNormalizedVector3();
 
 		lineRenderer.SetPosition(0, origin);
-		lineRenderer.SetPosition(1, origin + direction1);
+		lineRenderer.SetPosition(1, origin + GetDirectionalLightVector3(origin, direction1, lineSegmentsToTest));
 
 		lineRenderer.SetPosition(2, origin);
-		lineRenderer.SetPosition(3, origin + direction2);
+		lineRenderer.SetPosition(3, origin + GetDirectionalLightVector3(origin, direction2, lineSegmentsToTest));
 
 		lineRenderer.SetPosition(4, origin);
-		lineRenderer.SetPosition(5, origin + direction3);
+		lineRenderer.SetPosition(5, origin + GetDirectionalLightVector3(origin, direction3, lineSegmentsToTest));
 
 		lineRenderer.SetPosition(6, origin);
-		lineRenderer.SetPosition(7, origin + direction4);*/
+		lineRenderer.SetPosition(7, origin + GetDirectionalLightVector3(origin, direction4, lineSegmentsToTest));
+	}
+
+	private const float MAXIMUM_LIGHT_CAST = 7.5f;
+	private static Vector3 GetDirectionalLightVector3(Vector3 rayOrigin, Vector3 rayDirection, IEnumerable<LineSegment> lineSegments)
+	{
+		float t1 = MAXIMUM_LIGHT_CAST;
+		foreach (var lineSegment in lineSegments)
+		{
+			var t1a = GetT1(rayOrigin, rayDirection, lineSegment.Start, (lineSegment.End - lineSegment.Start).ToNormalizedVector2());
+			if (t1a < t1)
+				t1 = t1a;
+		}
+
+		return rayDirection * t1;
+	}
+
+	private static float GetT1(Vector3 rayOrigin, Vector3 rayDirection, Vector2 lineSegmentOrigin, Vector2 lineSegmentDirection)
+	{
+		/*
+			*Ray X = r_px+r_dx*T1
+			Ray Y = r_py+r_dy*T1
+			Segment X = s_px+s_dx*T2
+			Segment Y = s_py+s_dy*T2
+			*/
+
+		//T2 = (r_dx*(s_py-r_py) + r_dy*(r_px-s_px))/(s_dx*r_dy - s_dy*r_dx)
+		//T1 = (s_px + s_dx * T2 - r_px) / r_dx
+		float t2 = (rayDirection.x * (lineSegmentOrigin.y - rayOrigin.y) + rayDirection.y * (rayOrigin.x - lineSegmentOrigin.x)) / (lineSegmentDirection.x * rayDirection.y - lineSegmentDirection.y * rayDirection.x);
+		float t1 = (lineSegmentOrigin.x + lineSegmentDirection.x * t2 - rayOrigin.x) / rayDirection.x;
+		return ((t1 > 0f) && (0f < t2) && (t2 < 1f)) ? t1 : MAXIMUM_LIGHT_CAST;
 	}
 
 	public void SetLightmapData(int mapWidth, int mapHeight, IEnumerable<LineSegment> lineSegmentCollection)

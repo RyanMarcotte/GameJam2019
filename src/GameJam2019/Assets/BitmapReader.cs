@@ -2,9 +2,9 @@
 
 public class BitmapReader
 {
-	public TileType[,] Read()
+	public TileType[,] Read(string levelPath)
 	{
-		var levelBitmap = Resources.Load<Texture2D>( "Levels/lightMapTest" );
+		var levelBitmap = Resources.Load<Texture2D>(levelPath);
 		var tileMap = new TileType[levelBitmap.height, levelBitmap.width];
 		for (int x = 0; x < levelBitmap.width; x++)
 		{
@@ -19,7 +19,13 @@ public class BitmapReader
 	private TileType GetTileType(Color pixelColour)
 	{
 		if (pixelColour == Color.black)
-			return TileType.Obstacle;
+			return TileType.Stump;
+		if (pixelColour == Color.blue)
+			return TileType.Log;
+		if (pixelColour == Color.red)
+			return TileType.Tree;
+		if (pixelColour == Color.green)
+			return TileType.Bush;
 		return TileType.Ground;
 	}
 }

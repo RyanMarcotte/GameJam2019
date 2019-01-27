@@ -29,6 +29,7 @@ public class TerrainGenerator : MonoBehaviour
 	private Tile _log;
 	private Tile _logv;
 	private Tile _bush;
+	private Tile _rock;
 
 	public int SizeX { get; private set; }
 	public int SizeY { get; private set; }
@@ -42,6 +43,7 @@ public class TerrainGenerator : MonoBehaviour
 		_log = Resources.Load<Tile>("tiles/log");
 		_logv = Resources.Load<Tile>("tiles/logv");
 		_bush = Resources.Load<Tile>("tiles/bush");
+		_rock = Resources.Load<Tile>("tiles/rock");
 		_tree_topleft = Resources.Load<Tile>("tiles/treetopleft");
 		_tree_topright = Resources.Load<Tile>("tiles/treetopright");
 		_tree_bottomleft = Resources.Load<Tile>("tiles/treebottomleft");
@@ -120,6 +122,8 @@ public class TerrainGenerator : MonoBehaviour
 			return _stump;
 		if (tile == TileType.Bush)
 			return _bush;
+		if (tile == TileType.Rock)
+			return _rock;
 
 		if (tile == TileType.Tree)
 		{
@@ -219,7 +223,7 @@ public class TerrainGenerator : MonoBehaviour
 		lineSegmentCollection.Add(new LineSegment(bottomRightCorner, topRightCorner));
 		lineSegmentCollection.Add(new LineSegment(topRightCorner, topLeftCorner));
 
-		var rectangles = new List<Rect>();
+		var rectangles = new List<Tuple<TileType, Rect>>();
 		bool[,] cellVisited = new bool[height, width];
 		for (int y = 0; y < height; ++y)
 		{
@@ -230,23 +234,23 @@ public class TerrainGenerator : MonoBehaviour
 					continue;
 				}
 
-				var rectangle = GetRectangleFromCell(ref tileMap, ref cellVisited, x, y);
-				if (rectangle != null)
-					rectangles.Add(rectangle.Value);
+				var typeAndRectangle = GetRectangleFromCell(ref tileMap, ref cellVisited, x, y);
+				if (typeAndRectangle != null)
+					rectangles.Add(typeAndRectangle);
 			}
 		}
 
 		var rectGroups = new List<Rect[]>();
-		var rectanglesLeftToProcess = new LinkedList<Tuple<Rect, Bounds>>(rectangles.Select(r => Tuple.Create(r, new Bounds(r.center, r.size * 1.1f))));
+		var rectanglesLeftToProcess = new LinkedList<Tuple<TileType, Rect, Bounds>>(rectangles.Select(r => Tuple.Create(r.Item1, r.Item2, new Bounds(r.Item2.center, r.Item2.size * 1.1f))));
 		while (rectanglesLeftToProcess.Count > 0)
 		{
 			var firstRect = rectanglesLeftToProcess.First;
-			var currentGroup = new List<Tuple<Rect, Bounds>>(new [] { firstRect.Value });
-			var nodesToRemove = new List<LinkedListNode<Tuple<Rect, Bounds>>>(new [] { firstRect });
+			var currentGroup = new List<Tuple<TileType, Rect, Bounds>>(new [] { firstRect.Value });
+			var nodesToRemove = new List<LinkedListNode<Tuple<TileType, Rect, Bounds>>>(new [] { firstRect });
 			var current = firstRect.Next;
 			while (current != null)
 			{
-				if (currentGroup.Any(x => x.Item2.Intersects(current.Value.Item2)))
+				if (currentGroup.Any(x => x.Item1 == current.Value.Item1 && x.Item3.Intersects(current.Value.Item3)))
 				{
 					currentGroup.Add(current.Value);
 					nodesToRemove.Add(current);
@@ -255,7 +259,7 @@ public class TerrainGenerator : MonoBehaviour
 				current = current.Next;
 			}
 
-			rectGroups.Add(currentGroup.Select(x => x.Item1).ToArray());
+			rectGroups.Add(currentGroup.Select(x => x.Item2).ToArray());
 			foreach (var nodeToRemove in nodesToRemove)
 				rectanglesLeftToProcess.Remove(nodeToRemove);
 		}
@@ -264,14 +268,14 @@ public class TerrainGenerator : MonoBehaviour
 		return lineSegmentCollection.ToArray();
 	}
 
-	private static Rect? GetRectangleFromCell(
+	private static Tuple<TileType, Rect> GetRectangleFromCell(
 		ref TileType[,] tileMap,
 		ref bool[,] cellVisited,
 		int cellX,
 		int cellY)
 	{
 		var type = tileMap[cellY, cellX];
-		if (type != TileType.Tree)
+		if (type != TileType.Tree && type != TileType.Rock)
 			return null;
 
 		int widthOfTileMap = tileMap.GetLength(1);
@@ -330,7 +334,7 @@ public class TerrainGenerator : MonoBehaviour
 				cellVisited[y, x] = true;
 		}
 
-		return new Rect(cellX, cellY, width, height);
+		return Tuple.Create(type, new Rect(cellX, cellY, width, height));
 	}
 
 	private IEnumerable<LineSegment> GetConcaveHullFromRectangleGroup(Rect[] rectGroup, int width, int height)
@@ -345,7 +349,7 @@ public class TerrainGenerator : MonoBehaviour
 			new Vector2(r.xMax - halfWidth, r.yMin - halfHeight) // rectBottomRightCorner
 		}).Distinct(new Vector2EqualityComparer()).Select((item, index) => new Node(item.x, item.y, index)).ToList();
 
-		Hull.Hull.setConcaveHull(points, -1m, 100, true);
+		Hull.Hull.setConcaveHull(points, -0.1m, 100, true);
 		foreach (var line in Hull.Hull.hull_concave_edges)
 		{
 			Vector2 left = new Vector2((float)line.nodes[0].x, (float)line.nodes[0].y);

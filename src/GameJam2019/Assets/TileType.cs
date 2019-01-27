@@ -6,5 +6,6 @@
 	Log,
 	Bush,
 	NoiseSprite,
-	ShakeSprite
+	ShakeSprite,
+	Rock
 }

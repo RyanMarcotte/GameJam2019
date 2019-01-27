@@ -30,6 +30,9 @@ public class BitmapReader
 			return TileType.ShakeSprite;
 		if (pixelColour == Color.cyan)
 			return TileType.NoiseSprite;
+		if (pixelColour == new Color(1.0f, 1.0f, 0.0f))
+			return TileType.Rock;
+
 		return TileType.Ground;
 	}
 }

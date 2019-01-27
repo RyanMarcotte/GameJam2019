@@ -65,7 +65,7 @@ public class TerrainGenerator : MonoBehaviour
 		_houseDoor = Resources.Load<Tile>("tiles/house_6");
 
 		var bitmapReader = new BitmapReader();
-		var levelMap = bitmapReader.Read("Levels/map01");
+		var levelMap = bitmapReader.Read("Levels/map02");
 
 		if (levelMap == null || levelMap.GetLength(0) == 0 || levelMap.GetLength(1) == 0)
 		{

@@ -72,10 +72,10 @@ public class LightMapController : MonoBehaviour
 		lineRenderer.SetPosition(7, new Vector3(bounds.center.x + bounds.extents.x, bounds.center.y + bounds.extents.y, 10f));*/
 
 		var lineSegmentsToTest = linesToTest.Select(x => x.LineSegment).ToArray();
-		var direction1 = (new Vector2(playerBounds.center.x - playerBounds.extents.x, playerBounds.center.y - playerBounds.extents.y) - origin).normalized;
+		/*var direction1 = (new Vector2(playerBounds.center.x - playerBounds.extents.x, playerBounds.center.y - playerBounds.extents.y) - origin).normalized;
 		var direction2 = (new Vector2(playerBounds.center.x + playerBounds.extents.x, playerBounds.center.y - playerBounds.extents.y) - origin).normalized;
 		var direction3 = (new Vector2(playerBounds.center.x - playerBounds.extents.x, playerBounds.center.y + playerBounds.extents.y) - origin).normalized;
-		var direction4 = (new Vector2(playerBounds.center.x + playerBounds.extents.x, playerBounds.center.y + playerBounds.extents.y) - origin).normalized;
+		var direction4 = (new Vector2(playerBounds.center.x + playerBounds.extents.x, playerBounds.center.y + playerBounds.extents.y) - origin).normalized;*/
 
 		int count = 0;
 		var uniquePoints = lineSegmentsToTest.SelectMany(x => new[] { x.Start, x.End }).Distinct(new Vector2EqualityComparer()).ToArray();
@@ -107,21 +107,28 @@ public class LightMapController : MonoBehaviour
 		lineRenderer.SetPosition(7, origin + GetDirectionalLightVector2(origin, direction4, lineSegmentsToTest));*/
 	}
 
-	private class Vector2EqualityComparer : IEqualityComparer<Vector2>
-	{
-		public bool Equals(Vector2 v1, Vector2 v2) => Math.Abs(v1.x - v2.x) < 0.01f && Math.Abs(v1.y - v2.y) < 0.01f;
-		public int GetHashCode(Vector2 obj) => obj.GetHashCode();
-	}
-
-	private const float MAXIMUM_LIGHT_CAST = 20f;
+	private const float MAXIMUM_LIGHT_CAST = 205f;
 	private static Vector2 GetDirectionalLightVector2(Vector2 rayOrigin, Vector2 rayDirection, IEnumerable<LineSegment> lineSegments)
 	{
 		float t1 = MAXIMUM_LIGHT_CAST;
 		foreach (var lineSegment in lineSegments)
 		{
-			var t1a = GetT1(rayOrigin, rayDirection, lineSegment.Start, (lineSegment.End - lineSegment.Start));
+			var t1a = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.up * 0.1f, (lineSegment.End - lineSegment.Start));
 			if (t1a < t1)
 				t1 = t1a;
+
+			var t1b = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.right * 0.1f, (lineSegment.End - lineSegment.Start));
+			if (t1b < t1)
+				t1 = t1b;
+
+			var t1c = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.down * 0.1f, (lineSegment.End - lineSegment.Start));
+			if (t1c < t1)
+				t1 = t1c;
+
+			var t1d = GetT1(rayOrigin, rayDirection, lineSegment.Start + Vector2.left * 0.1f, (lineSegment.End - lineSegment.Start));
+			if (t1d < t1)
+				t1 = t1d;
+
 		}
 
 		return rayDirection * t1;
@@ -185,6 +192,12 @@ public class LightMapController : MonoBehaviour
 		
 		public Bounds AABB => LineSegment.AABB;
 	}
+}
+
+internal class Vector2EqualityComparer : IEqualityComparer<Vector2>
+{
+	public bool Equals(Vector2 v1, Vector2 v2) => Math.Abs(v1.x - v2.x) < 0.01f && Math.Abs(v1.y - v2.y) < 0.01f;
+	public int GetHashCode(Vector2 obj) => obj.GetHashCode();
 }
 
 public class LineSegment : Tuple<Vector2, Vector2>, IHasAABB

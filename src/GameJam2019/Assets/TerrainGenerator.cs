@@ -260,7 +260,7 @@ public class TerrainGenerator : MonoBehaviour
 				rectanglesLeftToProcess.Remove(nodeToRemove);
 		}
 
-		lineSegmentCollection.AddRange(rectGroups.SelectMany(x => GetConcaveHullFromRectangleGroup(x, width, height)));
+		lineSegmentCollection.AddRange(rectGroups.SelectMany(rectGroup => GetConcaveHullFromRectangleGroup(rectGroup, width, height)));
 		return lineSegmentCollection.ToArray();
 	}
 
@@ -343,10 +343,10 @@ public class TerrainGenerator : MonoBehaviour
 			new Vector2(r.xMax - halfWidth, r.yMax - halfHeight), // rectTopRightCorner
 			new Vector2(r.xMin - halfWidth, r.yMin - halfHeight), // rectBottomLeftCorner
 			new Vector2(r.xMax - halfWidth, r.yMin - halfHeight) // rectBottomRightCorner
-		}).Select((item, index) => new Node(item.x, item.y, index)).ToList();
+		}).Distinct(new Vector2EqualityComparer()).Select((item, index) => new Node(item.x, item.y, index)).ToList();
 
-		Hull.Hull.setConvHull(points);
-		Hull.Hull.setConcaveHull(0.0m, 1, true);
+		Hull.Hull.setConvexHull(points);
+		Hull.Hull.setConcaveHull(0m, 1000, false);
 		foreach (var line in Hull.Hull.hull_concave_edges)
 		{
 			Vector2 left = new Vector2((float)line.nodes[0].x, (float)line.nodes[0].y);
@@ -367,13 +367,14 @@ public class TerrainGenerator : MonoBehaviour
 	}
 }
 
+
+
 #region Concave Hull
 
 namespace Hull
 {
 	public static class Hull
 	{
-		public static int scaleFactor;
 		public static List<Node> unused_nodes = new List<Node>();
 		public static List<Line> hull_edges = new List<Line>();
 		public static List<Line> hull_concave_edges = new List<Line>();
@@ -400,29 +401,23 @@ namespace Hull
 			return exitLines;
 		}
 
-		public static void setConvHull(List<Node> nodes)
+		public static void setConvexHull(List<Node> nodes)
 		{
 			unused_nodes.AddRange(nodes);
 			hull_edges.AddRange(getHull(nodes));
 			foreach (Line line in hull_edges)
 			{
 				foreach (Node node in line.nodes)
-				{
-					if (unused_nodes.Find(a => a.id == node.id) != null)
-					{
-						unused_nodes.Remove(unused_nodes.First(a => a.id == node.id));
-					}
-				}
+					unused_nodes.RemoveAll(a => a.id == node.id);
 			}
 		}
 
 		public static void setConcaveHull(decimal concavity, int scaleFactor, bool isSquareGrid)
 		{
-			/* Run setConvHull before! 
+			/* Run setConvexHull before! 
              * Concavity is a value used to restrict the concave angles 
              * it can go from -1 to 1 (it wont crash if you go further)
              * */
-			Hull.scaleFactor = scaleFactor;
 			hull_concave_edges = new List<Line>(hull_edges.OrderByDescending(a => Line.getLength(a.nodes[0], a.nodes[1])).ToList());
 			Line selected_edge;
 			List<Line> aux = new List<Line>(); ;
@@ -441,19 +436,14 @@ namespace Hull
 					aux = new List<Line>();
 					if (!selected_edge.isChecked)
 					{
-						List<Node> nearby_points = HullFunctions.getNearbyPoints(selected_edge, unused_nodes, Hull.scaleFactor);
+						List<Node> nearby_points = HullFunctions.getNearbyPoints(selected_edge, unused_nodes, scaleFactor);
 						aux.AddRange(HullFunctions.setConcave(selected_edge, nearby_points, hull_concave_edges, concavity, isSquareGrid));
 						listIsModified = listIsModified || (aux.Count > 1);
 
 						if (aux.Count > 1)
 						{
 							foreach (Node node in aux[0].nodes)
-							{
-								if (unused_nodes.Find(a => a.id == node.id) != null)
-								{
-									unused_nodes.Remove(unused_nodes.Where(a => a.id == node.id).First());
-								}
-							}
+								unused_nodes.RemoveAll(a => a.id == node.id);
 						}
 						else
 						{

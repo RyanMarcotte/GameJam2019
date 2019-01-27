@@ -105,7 +105,7 @@ public class LightMapController : MonoBehaviour
 		float t1 = MAXIMUM_LIGHT_CAST;
 		foreach (var lineSegment in lineSegments)
 		{
-			var t1a = GetT1(rayOrigin, rayDirection, lineSegment.Start, (lineSegment.End - lineSegment.Start).normalized);
+			var t1a = GetT1(rayOrigin, rayDirection, lineSegment.Start, (lineSegment.End - lineSegment.Start));
 			if (t1a < t1)
 				t1 = t1a;
 		}

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using Random = System.Random;
@@ -217,6 +218,7 @@ public class TerrainGenerator : MonoBehaviour
 		lineSegmentCollection.Add(new LineSegment(bottomRightCorner, topRightCorner));
 		lineSegmentCollection.Add(new LineSegment(topRightCorner, topLeftCorner));
 
+		var rectangles = new List<Rect>();
 		bool[,] cellVisited = new bool[height, width];
 		for (int y = 0; y < height; ++y)
 		{
@@ -228,26 +230,16 @@ public class TerrainGenerator : MonoBehaviour
 				}
 
 				var rectangle = GetRectangleFromCell(ref tileMap, ref cellVisited, x, y);
-				if (rectangle == null)
-					continue;
-
-				var rect = rectangle.Value;
-				var rectTopLeftCorner = new Vector2(rect.xMin - width / 2, rect.yMax - height / 2);
-				var rectTopRightCorner = new Vector2(rect.xMax - width / 2, rect.yMax - height / 2);
-				var rectBottomLeftCorner = new Vector2(rect.xMin - width / 2, rect.yMin - height / 2);
-				var rectBottomRightCorner = new Vector2(rect.xMax - width / 2, rect.yMin - height / 2);
-
-				lineSegmentCollection.Add(new LineSegment(rectTopLeftCorner, rectBottomLeftCorner));
-				lineSegmentCollection.Add(new LineSegment(rectBottomLeftCorner, rectBottomRightCorner));
-				lineSegmentCollection.Add(new LineSegment(rectBottomRightCorner, rectTopRightCorner));
-				lineSegmentCollection.Add(new LineSegment(rectTopRightCorner, rectTopLeftCorner));
+				if (rectangle != null)
+					rectangles.Add(rectangle.Value);
 			}
 		}
 
+		lineSegmentCollection.AddRange(rectangles.SelectMany(rect => GetLineSegmentsFromRectangle(rect, width, height)));
 		return lineSegmentCollection.ToArray();
 	}
 
-	private Rect? GetRectangleFromCell(
+	private static Rect? GetRectangleFromCell(
 		ref TileType[,] tileMap,
 		ref bool[,] cellVisited,
 		int cellX,
@@ -314,5 +306,18 @@ public class TerrainGenerator : MonoBehaviour
 		}
 
 		return new Rect(cellX, cellY, width, height);
+	}
+
+	private static IEnumerable<LineSegment> GetLineSegmentsFromRectangle(Rect rect, int width, int height)
+	{
+		var rectTopLeftCorner = new Vector2(rect.xMin - width / 2, rect.yMax - height / 2);
+		var rectTopRightCorner = new Vector2(rect.xMax - width / 2, rect.yMax - height / 2);
+		var rectBottomLeftCorner = new Vector2(rect.xMin - width / 2, rect.yMin - height / 2);
+		var rectBottomRightCorner = new Vector2(rect.xMax - width / 2, rect.yMin - height / 2);
+
+		yield return new LineSegment(rectTopLeftCorner, rectBottomLeftCorner);
+		yield return new LineSegment(rectBottomLeftCorner, rectBottomRightCorner);
+		yield return new LineSegment(rectBottomRightCorner, rectTopRightCorner);
+		yield return new LineSegment(rectTopRightCorner, rectTopLeftCorner);
 	}
 }

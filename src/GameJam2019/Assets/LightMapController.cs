@@ -17,7 +17,7 @@ public class LightMapController : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
-		//var position = Player.transform.position;
+		var position = Player.transform.position;
 		foreach (var item in _quadTree.Items)
 			item.LineRenderer.enabled = false;
 
@@ -25,7 +25,7 @@ public class LightMapController : MonoBehaviour
 		float screenAspect = (float)Screen.width / (float)Screen.height;
 		float cameraHeight = camera.orthographicSize * 2;
 		var boundsSize = new Vector2(cameraHeight * screenAspect, cameraHeight);
-		var bounds = new Bounds(new Vector2(camera.transform.position.x, camera.transform.position.y), boundsSize / 4);
+		var bounds = new Bounds(new Vector2(position.x, position.y), boundsSize / 4);
 		foreach (var item in _quadTree.Query(bounds))
 			item.LineRenderer.enabled = true;
 	}
